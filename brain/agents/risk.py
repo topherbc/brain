@@ -1,5 +1,5 @@
 from crewai import Agent
-from ..tools import RiskEvaluator
+from ..tools import risk_evaluator
 
 class RiskAssessor:
     @staticmethod
@@ -7,7 +7,7 @@ class RiskAssessor:
         return Agent(
             name="Risk Assessor",
             role="Evaluate potential risks and rewards",
-            tools=[RiskEvaluator()],
+            tools=[risk_evaluator],
             goal="Identify and assess potential risks and benefits",
             backstory="Models the amygdala's role in threat detection and risk assessment.",
             verbose=True
