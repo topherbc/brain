@@ -1,0 +1,11 @@
+Given the following scenarios, analyze and provide a recommended decision:
+
+Scenario: A startup is deciding between two growth strategies:
+A) Rapid expansion into multiple markets with higher risk and resource requirements
+B) Focused growth in current market with steady expansion
+
+Consider:
+1. Resource implications
+2. Risk assessment
+3. Long-term sustainability
+4. Market conditions

@@ -1,10 +1,8 @@
-Analyze the following number sequence and identify underlying patterns, relationships, and potential next values. Consider both mathematical and sequential patterns.
+Analyze the following sequence and identify any patterns:
+2, 3, 5, 8, 13, 21, 34, 55
 
-Sequence: 2, 3, 5, 8, 13, 21, 34, 55
-
-Requirements:
-- Pattern identification
-- Mathematical relationships
-- Next 3 predicted values
-- Confidence level for predictions
-- Alternative pattern possibilities
+Provide the following analysis:
+1. Pattern identification
+2. Mathematical relationships
+3. Next three predicted numbers
+4. Any significant properties of the sequence
