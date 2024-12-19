@@ -1,5 +1,5 @@
 from crewai import Agent
-from ..tools import PatternAnalyzer
+from ..tools import pattern_analyzer
 
 class PatternRecognizer:
     @staticmethod
@@ -7,7 +7,7 @@ class PatternRecognizer:
         return Agent(
             name="Pattern Recognizer",
             role="Identify patterns and predict outcomes",
-            tools=[PatternAnalyzer()],
+            tools=[pattern_analyzer],
             goal="Detect patterns, anomalies, and make predictions",
             backstory="Similar to the brain's temporal lobe, specialized in recognizing patterns and making predictions.",
             verbose=True
