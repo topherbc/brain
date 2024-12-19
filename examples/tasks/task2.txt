@@ -1,0 +1,14 @@
+Evaluate the optimal pricing strategy for our new SaaS product based on market research, competitor analysis, and customer segment data.
+
+Context:
+- Product: AI-powered analytics platform
+- Target market: Small to medium businesses
+- Competitors: 3 main players in market
+- Current customer base: 1000 users
+
+Requirements:
+- Price point recommendations
+- Market positioning analysis
+- Customer segment impact
+- Revenue projections
+- Risk assessment of pricing strategies

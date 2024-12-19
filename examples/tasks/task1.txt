@@ -1,0 +1,13 @@
+Analyze the risks and opportunities of expanding our e-commerce platform to international markets, considering regulatory compliance, technical infrastructure, and market potential.
+
+Context:
+- Current market: US only
+- Platform: Custom built e-commerce solution
+- Team size: 50 people
+- Budget: $2M for expansion
+
+Requirements:
+- Detailed risk analysis
+- Market opportunity assessment
+- Technical feasibility evaluation
+- Resource allocation recommendations
