@@ -1,13 +1,7 @@
-from typing import List, Optional, Any, Dict
-from pydantic import BaseModel, Field
+from typing import List, Optional, Dict, Any
+from crewai import Agent, Task, Crew, Process
 from datetime import datetime
-import json
-
-class Task(BaseModel):
-    description: str
-    context: List[str] = Field(default_factory=list, description="List of context strings")
-    priority: Optional[int] = Field(default=1, ge=1, le=5)
-    status: str = Field(default="pending")
+from pydantic import BaseModel, Field
 
 class AgentResponse(BaseModel):
     agent_name: str
@@ -15,41 +9,138 @@ class AgentResponse(BaseModel):
     timestamp: str = Field(default_factory=lambda: datetime.now().isoformat())
     confidence: Optional[float] = None
 
-class CognitiveCrew:
+class BrainCrew:
     def __init__(self):
-        self.tasks: List[Task] = []
+        # Initialize core agents
+        self.executive_controller = Agent(
+            name="Executive Controller",
+            goal="Coordinate and manage the cognitive pipeline",
+            backstory="""You are the executive controller of the cognitive system,
+            responsible for task management and coordination between specialist agents.""",
+            tools=[self._determine_priority, self._extract_context]
+        )
+
+        self.pattern_recognition_specialist = Agent(
+            name="Pattern Recognition Specialist",
+            goal="Identify and analyze patterns in input data",
+            backstory="""You are a specialist in recognizing patterns and sequences,
+            with expertise in both numerical and abstract pattern analysis.""",
+            tools=[self._pattern_recognition_analysis]
+        )
+
+        self.mathematical_analyst = Agent(
+            name="Mathematical Analyst",
+            goal="Perform detailed mathematical analysis",
+            backstory="""You are a mathematical expert focused on numerical analysis,
+            mathematical relationships, and quantitative reasoning.""",
+            tools=[self._mathematical_analysis]
+        )
+
+        self.information_synthesizer = Agent(
+            name="Information Synthesizer",
+            goal="Synthesize and summarize analysis results",
+            backstory="""You are responsible for combining insights from different agents
+            and creating comprehensive summaries.""",
+            tools=[self._synthesizer_summary]
+        )
+
+        # Initialize state
         self.context: List[str] = []
         self.memory: List[Dict[str, Any]] = []
         self.agent_responses: List[AgentResponse] = []
+
+    def process_input(self, input_data: Any) -> str:
+        """Process input through cognitive pipeline using CrewAI"""
+        # Create tasks for each step of the pipeline
+        initial_assessment = Task(
+            description="Perform initial assessment of input",
+            agent=self.executive_controller,
+            context=input_data
+        )
+
+        pattern_analysis = Task(
+            description="Analyze patterns in the input",
+            agent=self.pattern_recognition_specialist,
+            context=input_data
+        )
+
+        math_analysis = Task(
+            description="Perform mathematical analysis",
+            agent=self.mathematical_analyst,
+            context=input_data
+        )
+
+        synthesis = Task(
+            description="Synthesize all analysis results",
+            agent=self.information_synthesizer,
+            context=input_data
+        )
+
+        # Create and run the crew
+        crew = Crew(
+            agents=[self.executive_controller, self.pattern_recognition_specialist,
+                   self.mathematical_analyst, self.information_synthesizer],
+            tasks=[initial_assessment, pattern_analysis, math_analysis, synthesis],
+            process=Process.sequential  # Tasks run in sequence
+        )
+
+        # Execute the cognitive pipeline
+        result = crew.kickoff()
+
+        # Process and format results
+        return self._format_output({
+            'initial_query': input_data,
+            'analysis': self._process_crew_result(result),
+            'context': self.context,
+            'actions': [],
+            'memory_updates': []
+        })
+
+    def _process_crew_result(self, result: str) -> Dict[str, Any]:
+        """Process the crew execution results"""
+        # Parse and structure the results
+        analysis = {
+            'patterns': [],
+            'predictions': [],
+            'mathematical_insights': [],
+            'synthesis': result
+        }
+        
+        # Extract patterns and predictions from the result
+        if 'patterns identified:' in result.lower():
+            patterns_section = result.split('patterns identified:')[1].split('\n')[0]
+            analysis['patterns'] = [p.strip() for p in patterns_section.split(',')]
+            
+        if 'predictions:' in result.lower():
+            predictions_section = result.split('predictions:')[1].split('\n')[0]
+            analysis['predictions'] = [p.strip() for p in predictions_section.split(',')]
+
+        return analysis
 
     def _format_output(self, data: Dict[str, Any]) -> str:
         """Format output for human readability"""
         output = ["\n=== Cognitive Analysis Report ==="]
         
         # Format Initial Query Section
-        if 'initial_query' in data:
-            output.append("\n📝 Initial Query:")
-            output.append(f"  {data['initial_query']}")
+        output.append("\n📝 Initial Query:")
+        output.append(f"  {data['initial_query']}")
         
         # Format Analysis Section
         output.append("\n🔍 Analysis Results:")
-        if 'patterns' in data['analysis']:
+        if data['analysis'].get('patterns'):
             output.append("  Identified Patterns:")
             for pattern in data['analysis']['patterns']:
                 output.append(f"    • {pattern}")
-        if 'predictions' in data['analysis']:
+                
+        if data['analysis'].get('predictions'):
             output.append("  Predictions:")
             for pred in data['analysis']['predictions']:
                 output.append(f"    • {pred}")
-        
-        # Format Agent Responses
-        output.append("\n🤖 Agent Responses:")
-        for response in self.agent_responses:
-            confidence_str = f" (Confidence: {response.confidence*100:.1f}%)" if response.confidence else ""
-            output.append(f"\n  • {response.agent_name}{confidence_str}:")
-            # Split response into lines for better formatting
-            for line in response.response.split('\n'):
-                output.append(f"    {line}")
+                
+        if data['analysis'].get('synthesis'):
+            output.append("\n📊 Synthesis:")
+            for line in data['analysis']['synthesis'].split('\n'):
+                output.append(f"  {line}")
         
         # Format Context Section
         if data['context']:
@@ -57,217 +148,52 @@ class CognitiveCrew:
             for ctx in data['context']:
                 output.append(f"  • {ctx}")
         
-        # Format Actions Section
-        if data['actions']:
-            output.append("\n⚡ Actions Taken:")
-            for action in data['actions']:
-                output.append(f"  • {action['type'].replace('_', ' ').title()}: Task #{action.get('task_id')}")
-        
         output.append("\n=== End Report ===\n")
         return '\n'.join(output)
 
-    def process_input(self, input_data: Any) -> str:
-        """Process input through cognitive pipeline with formatted output"""
-        response = {
-            'initial_query': input_data,
-            'analysis': {},
-            'context': [],
-            'actions': [],
-            'memory_updates': []
+    # Tool implementations
+    def _determine_priority(self, input_data: Dict[str, Any]) -> int:
+        """Determine priority level for a task"""
+        content = str(input_data.get('content', '')).lower()
+        
+        priority_terms = {
+            5: ['urgent', 'critical', 'immediate', 'asap', 'emergency'],
+            4: ['important', 'priority', 'significant', 'crucial'],
+            3: ['soon', 'moderate', 'regular'],
+            2: ['when possible', 'low priority', 'optional']
         }
         
-        try:
-            # Step 1: Executive Controller Initial Assessment
-            self.agent_responses.append(AgentResponse(
-                agent_name="Executive Controller",
-                response=self._executive_controller_analysis(input_data),
-                confidence=0.95
-            ))
-            
-            # Step 2: Pattern Recognition Analysis
-            if "sequence" in input_data.lower():
-                pattern_analysis = self._pattern_recognition_analysis(input_data)
-                response['analysis']['patterns'] = pattern_analysis['patterns']
-                response['analysis']['predictions'] = pattern_analysis['predictions']
-                self.agent_responses.append(AgentResponse(
-                    agent_name="Pattern Recognition Specialist",
-                    response=pattern_analysis['explanation'],
-                    confidence=pattern_analysis['confidence']
-                ))
-            
-            # Step 3: Mathematical Analysis
-            if any(term in input_data.lower() for term in ['number', 'sequence', 'pattern']):
-                math_analysis = self._mathematical_analysis(input_data)
-                self.agent_responses.append(AgentResponse(
-                    agent_name="Mathematical Analyst",
-                    response=math_analysis['explanation'],
-                    confidence=math_analysis['confidence']
-                ))
-            
-            # Step 4: Context Processing
-            context_updates = self._extract_context(input_data)
-            self.context.extend(context_updates)
-            response['context'] = self.context.copy()
-            
-            # Step 5: Synthesizer Summary
-            synth_response = self._synthesizer_summary(response)
-            self.agent_responses.append(AgentResponse(
-                agent_name="Information Synthesizer",
-                response=synth_response['summary'],
-                confidence=synth_response['confidence']
-            ))
-            
-            # Step 6: Create Task
-            task = Task(
-                description=f"Analysis Task: {input_data[:100]}",
-                context=context_updates,
-                priority=self._determine_priority({'content': input_data})
-            )
-            self.add_task(task)
-            response['actions'].append({
-                'type': 'task_created',
-                'task_id': len(self.tasks) - 1
-            })
-            
-        except Exception as e:
-            response['error'] = str(e)
-            self.agent_responses.append(AgentResponse(
-                agent_name="Error Handler",
-                response=f"Error encountered: {str(e)}",
-                confidence=1.0
-            ))
-        
-        return self._format_output(response)
-
-    def _determine_priority(self, input_data: Dict[str, Any]) -> int:
-        """Determine priority level for a task based on input content"""
-        content = input_data.get('content', '').lower()
-        
-        # Priority indicators
-        urgent_terms = ['urgent', 'critical', 'immediate', 'asap', 'emergency']
-        high_terms = ['important', 'priority', 'significant', 'crucial']
-        medium_terms = ['soon', 'moderate', 'regular']
-        low_terms = ['when possible', 'low priority', 'optional']
-        
-        # Check for priority indicators
-        if any(term in content for term in urgent_terms):
-            return 5
-        elif any(term in content for term in high_terms):
-            return 4
-        elif any(term in content for term in medium_terms):
-            return 3
-        elif any(term in content for term in low_terms):
-            return 2
-        
-        # Default priority
+        for priority, terms in priority_terms.items():
+            if any(term in content for term in terms):
+                return priority
         return 1
 
     def _pattern_recognition_analysis(self, input_data: str) -> Dict[str, Any]:
-        """Analyze numerical patterns in the input"""
-        if "2, 3, 5, 8, 13, 21, 34, 55" in input_data:
-            return {
-                'patterns': [
-                    "Fibonacci Sequence: Each number is the sum of the previous two numbers",
-                    "Growth Rate: Approximately 1.618 (Golden Ratio) between consecutive terms",
-                    "Additive Pattern: f(n) = f(n-1) + f(n-2)"
-                ],
-                'predictions': [
-                    "Next value: 89 (55 + 34)",
-                    "Second next: 144 (89 + 55)",
-                    "Third next: 233 (144 + 89)"
-                ],
-                'explanation': "This is a classic Fibonacci sequence where each number is the sum of the previous two numbers.\n" \
-                              "The sequence demonstrates the golden ratio (φ ≈ 1.618) as the ratio between consecutive terms converges to this value.\n" \
-                              "Confidence is very high as this is a well-known mathematical sequence with clear patterns.",
-                'confidence': 0.99
-            }
-        return {
-            'patterns': [],
-            'predictions': [],
-            'explanation': "No clear numerical pattern identified in the input.",
-            'confidence': 0.0
-        }
+        """Analyze patterns in the input"""
+        # Implementation would include pattern recognition logic
+        return {'patterns': [], 'confidence': 0.0}
 
     def _mathematical_analysis(self, input_data: str) -> Dict[str, Any]:
-        """Perform mathematical analysis on the input"""
-        if "2, 3, 5, 8, 13, 21, 34, 55" in input_data:
-            return {
-                'explanation': "Mathematical Properties:\n" \
-                              "1. Growth Rate Analysis:\n" \
-                              "   - Ratio between consecutive terms converges to φ (1.618033989)\n" \
-                              "   - This is a property of the golden ratio\n" \
-                              "2. Formula: F(n) = F(n-1) + F(n-2)\n" \
-                              "3. Alternative Form: F(n) = [φⁿ - (-φ)⁻ⁿ]/√5\n" \
-                              "4. Algebraic Properties:\n" \
-                              "   - Every 3rd number is even\n" \
-                              "   - The sum of any 10 consecutive numbers is divisible by 11",
-                'confidence': 0.98
-            }
-        return {
-            'explanation': "No mathematical patterns to analyze.",
-            'confidence': 0.0
-        }
+        """Perform mathematical analysis"""
+        # Implementation would include mathematical analysis logic
+        return {'explanation': '', 'confidence': 0.0}
 
-    def _executive_controller_analysis(self, input_data: str) -> str:
-        """Executive Controller's initial assessment"""
-        return "Initial Assessment:\n" \
-               "1. Task Type: Pattern Analysis\n" \
-               "2. Required Components: Sequence Analysis, Mathematical Relationships\n" \
-               "3. Execution Plan:\n" \
-               "   - Pattern Recognition\n" \
-               "   - Mathematical Analysis\n" \
-               "   - Prediction Generation\n" \
-               "4. Expected Outputs: Patterns, Relationships, Predictions"
-
-    def _synthesizer_summary(self, response: Dict[str, Any]) -> Dict[str, str]:
-        """Information Synthesizer's summary"""
-        if 'patterns' in response['analysis']:
-            patterns = len(response['analysis']['patterns'])
-            predictions = len(response['analysis'].get('predictions', []))
-            return {
-                'summary': f"Analysis Summary:\n" \
-                          f"1. Identified {patterns} distinct patterns\n" \
-                          f"2. Generated {predictions} future predictions\n" \
-                          f"3. Established mathematical relationships\n" \
-                          f"4. High confidence in pattern recognition\n" \
-                          f"5. Recommended further monitoring for pattern stability",
-                'confidence': 0.95
-            }
-        return {
-            'summary': "No significant patterns to summarize.",
-            'confidence': 0.0
-        }
+    def _synthesizer_summary(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Synthesize analysis results"""
+        # Implementation would include synthesis logic
+        return {'summary': '', 'confidence': 0.0}
 
     def _extract_context(self, input_data: str) -> List[str]:
-        """Extract new context from input"""
+        """Extract context from input"""
         context = []
-        if "sequence" in input_data.lower():
-            context.append("numerical_analysis")
-            context.append("pattern_recognition")
-        if "fibonacci" in input_data.lower() or "2, 3, 5, 8, 13, 21" in input_data:
-            context.append("fibonacci_sequence")
+        keywords = {
+            'numerical_analysis': ['number', 'sequence', 'pattern'],
+            'mathematical': ['equation', 'formula', 'calculation'],
+            'pattern_recognition': ['pattern', 'sequence', 'trend']
+        }
+        
+        for category, terms in keywords.items():
+            if any(term in input_data.lower() for term in terms):
+                context.append(category)
+        
         return context
-
-    def add_task(self, task: Task) -> None:
-        """Add a new task to the crew's queue"""
-        self.tasks.append(task)
-
-    def get_next_task(self) -> Optional[Task]:
-        """Get the highest priority pending task"""
-        pending_tasks = [t for t in self.tasks if t.status == "pending"]
-        if not pending_tasks:
-            return None
-        return max(pending_tasks, key=lambda x: x.priority)
-
-    def update_task_status(self, task: Task, new_status: str) -> None:
-        """Update the status of a task"""
-        if task in self.tasks:
-            task.status = new_status
-
-    def add_context(self, context_item: str) -> None:
-        """Add a new context item to the crew's context"""
-        self.context.append(context_item)
-
-    def get_context(self) -> List[str]:
-        """Get the current context"""
-        return self.context.copy()
