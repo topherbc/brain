@@ -1,3 +1,3 @@
-from .crew import CognitiveCrew
+from .crew import BrainCrew as CognitiveCrew  # Alias for backward compatibility
 
-__version__ = '0.1.0'
+__all__ = ['CognitiveCrew']
