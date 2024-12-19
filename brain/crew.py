@@ -16,7 +16,7 @@ class AgentResponse(BaseModel):
     confidence: Optional[float] = None
 
 @CrewBase
-class BrainCrew:
+class CognitiveCrew:
     def __init__(self):
         self.context: List[str] = []
         self.memory: List[Dict[str, Any]] = []
