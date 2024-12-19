@@ -139,6 +139,29 @@ class CognitiveCrew:
         
         return self._format_output(response)
 
+    def _determine_priority(self, input_data: Dict[str, Any]) -> int:
+        """Determine priority level for a task based on input content"""
+        content = input_data.get('content', '').lower()
+        
+        # Priority indicators
+        urgent_terms = ['urgent', 'critical', 'immediate', 'asap', 'emergency']
+        high_terms = ['important', 'priority', 'significant', 'crucial']
+        medium_terms = ['soon', 'moderate', 'regular']
+        low_terms = ['when possible', 'low priority', 'optional']
+        
+        # Check for priority indicators
+        if any(term in content for term in urgent_terms):
+            return 5
+        elif any(term in content for term in high_terms):
+            return 4
+        elif any(term in content for term in medium_terms):
+            return 3
+        elif any(term in content for term in low_terms):
+            return 2
+        
+        # Default priority
+        return 1
+
     def _pattern_recognition_analysis(self, input_data: str) -> Dict[str, Any]:
         """Analyze numerical patterns in the input"""
         if "2, 3, 5, 8, 13, 21, 34, 55" in input_data:
@@ -225,4 +248,26 @@ class CognitiveCrew:
             context.append("fibonacci_sequence")
         return context
 
-    # [Previous methods remain unchanged: add_task, get_next_task, update_task_status, add_context, get_context]
+    def add_task(self, task: Task) -> None:
+        """Add a new task to the crew's queue"""
+        self.tasks.append(task)
+
+    def get_next_task(self) -> Optional[Task]:
+        """Get the highest priority pending task"""
+        pending_tasks = [t for t in self.tasks if t.status == "pending"]
+        if not pending_tasks:
+            return None
+        return max(pending_tasks, key=lambda x: x.priority)
+
+    def update_task_status(self, task: Task, new_status: str) -> None:
+        """Update the status of a task"""
+        if task in self.tasks:
+            task.status = new_status
+
+    def add_context(self, context_item: str) -> None:
+        """Add a new context item to the crew's context"""
+        self.context.append(context_item)
+
+    def get_context(self) -> List[str]:
+        """Get the current context"""
+        return self.context.copy()
