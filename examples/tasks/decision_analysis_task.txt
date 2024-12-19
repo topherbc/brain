@@ -1,0 +1,18 @@
+Given the following scenario, analyze the decision-making process and potential outcomes:
+
+A robot must navigate through a maze with three paths:
+Path A: Shortest but requires crossing unstable terrain
+Path B: Longest but completely stable
+Path C: Medium length with unknown terrain
+
+Constraints:
+- Battery life: 3 hours
+- Must carry a fragile payload
+- Cannot backtrack once path is chosen
+
+Requirements:
+- Risk assessment for each path
+- Probability of success calculations
+- Decision tree analysis
+- Optimal path recommendation
+- Alternative strategies

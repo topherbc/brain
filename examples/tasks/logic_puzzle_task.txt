@@ -1,0 +1,17 @@
+Solve the following logic puzzle by analyzing the relationships and constraints:
+
+In a row of five houses, each painted a different color:
+1. The mathematician lives in the red house
+2. The physicist keeps fish
+3. The chemist lives next to the blue house
+4. The biologist lives in the first house
+5. The owner of the green house keeps cats
+6. The owner of the white house studies black holes
+7. The person in the yellow house keeps dogs
+
+Requirements:
+- Complete solution with house order
+- Logical steps demonstration
+- Constraint validation
+- Alternative possibilities if any
+- Confidence level in solution
