@@ -1,5 +1,9 @@
-from .text_cleaner import TextCleaner
+from .text_cleaner import text_cleaner, tokenizer
 from .data_formatter import DataFormatter
 from .analyzers import RiskEvaluator, PatternAnalyzer
 from .memory import MemoryDatabase
 from .confidence import ConfidenceAnalyzer
+from .base import BaseTool
+
+# List of all available tools
+tools = [text_cleaner, tokenizer]
