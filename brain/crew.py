@@ -7,7 +7,7 @@ class Task(BaseModel):
     priority: Optional[int] = Field(default=1, ge=1, le=5)
     status: str = Field(default="pending")
 
-class Crew:
+class CognitiveCrew:
     def __init__(self):
         self.tasks: List[Task] = []
         self.context: List[str] = []
