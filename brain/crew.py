@@ -1,7 +1,13 @@
 from typing import List, Optional, Dict, Any
 from crewai import Agent, Task, Crew, Process
+from crewai.project import CrewBase, agent, task, crew
 from datetime import datetime
 from pydantic import BaseModel, Field
+from dotenv import load_dotenv
+import os
+
+# Load environment variables
+load_dotenv()
 
 class AgentResponse(BaseModel):
     agent_name: str
@@ -9,187 +15,193 @@ class AgentResponse(BaseModel):
     timestamp: str = Field(default_factory=lambda: datetime.now().isoformat())
     confidence: Optional[float] = None
 
+@CrewBase
 class BrainCrew:
     def __init__(self):
-        # Initialize core agents
-        self.executive_controller = Agent(
-            name="Executive Controller",
-            goal="Coordinate and manage the cognitive pipeline",
-            backstory="""You are the executive controller of the cognitive system,
-            responsible for task management and coordination between specialist agents.""",
-            tools=[self._determine_priority, self._extract_context]
-        )
-
-        self.pattern_recognition_specialist = Agent(
-            name="Pattern Recognition Specialist",
-            goal="Identify and analyze patterns in input data",
-            backstory="""You are a specialist in recognizing patterns and sequences,
-            with expertise in both numerical and abstract pattern analysis.""",
-            tools=[self._pattern_recognition_analysis]
-        )
-
-        self.mathematical_analyst = Agent(
-            name="Mathematical Analyst",
-            goal="Perform detailed mathematical analysis",
-            backstory="""You are a mathematical expert focused on numerical analysis,
-            mathematical relationships, and quantitative reasoning.""",
-            tools=[self._mathematical_analysis]
-        )
-
-        self.information_synthesizer = Agent(
-            name="Information Synthesizer",
-            goal="Synthesize and summarize analysis results",
-            backstory="""You are responsible for combining insights from different agents
-            and creating comprehensive summaries.""",
-            tools=[self._synthesizer_summary]
-        )
-
-        # Initialize state
         self.context: List[str] = []
         self.memory: List[Dict[str, Any]] = []
         self.agent_responses: List[AgentResponse] = []
 
-    def process_input(self, input_data: Any) -> str:
-        """Process input through cognitive pipeline using CrewAI"""
-        # Create tasks for each step of the pipeline
-        initial_assessment = Task(
-            description="Perform initial assessment of input",
-            agent=self.executive_controller,
-            context=input_data
+    # Cognitive Agents
+    @agent
+    def perception_agent(self) -> Agent:
+        return Agent(
+            name="Perception Processor",
+            role="Process and interpret incoming information",
+            goal="Convert raw input into structured representations",
+            backstory="""You are a specialized cognitive agent that handles the initial 
+            processing of information, similar to how the brain's sensory cortices work. 
+            You identify key components, structure, and basic patterns in the input.""",
+            tools=[self._extract_context]
         )
 
-        pattern_analysis = Task(
-            description="Analyze patterns in the input",
-            agent=self.pattern_recognition_specialist,
-            context=input_data
+    @agent
+    def working_memory_agent(self) -> Agent:
+        return Agent(
+            name="Working Memory Manager",
+            role="Maintain and manipulate active information",
+            goal="Keep relevant information accessible and updated",
+            backstory="""You are responsible for maintaining currently relevant information 
+            in an active state, similar to the brain's prefrontal cortex function. You 
+            handle temporary storage and manipulation of data needed for ongoing tasks.""",
+            tools=[self._update_memory]
         )
 
-        math_analysis = Task(
-            description="Perform mathematical analysis",
-            agent=self.mathematical_analyst,
-            context=input_data
+    @agent
+    def pattern_analysis_agent(self) -> Agent:
+        return Agent(
+            name="Pattern Analysis Specialist",
+            role="Identify complex patterns and relationships",
+            goal="Detect and analyze patterns in information",
+            backstory="""You specialize in identifying complex patterns, relationships, 
+            and abstractions in information, similar to how the brain's association 
+            areas process complex features and relationships.""",
+            tools=[self._pattern_recognition_analysis]
         )
 
-        synthesis = Task(
-            description="Synthesize all analysis results",
-            agent=self.information_synthesizer,
-            context=input_data
+    @agent
+    def attention_control_agent(self) -> Agent:
+        return Agent(
+            name="Attention Controller",
+            role="Direct focus and filter information",
+            goal="Prioritize and filter information streams",
+            backstory="""You control the focus of processing resources, similar to the 
+            brain's attention networks. You determine what information is most relevant 
+            and requires deeper processing.""",
+            tools=[self._determine_priority]
         )
 
-        # Create and run the crew
-        crew = Crew(
-            agents=[self.executive_controller, self.pattern_recognition_specialist,
-                   self.mathematical_analyst, self.information_synthesizer],
-            tasks=[initial_assessment, pattern_analysis, math_analysis, synthesis],
-            process=Process.sequential  # Tasks run in sequence
+    @agent
+    def reasoning_agent(self) -> Agent:
+        return Agent(
+            name="Logical Reasoning Processor",
+            role="Apply logical analysis and problem-solving",
+            goal="Generate logical conclusions and solutions",
+            backstory="""You handle complex reasoning and problem-solving tasks, similar 
+            to the brain's executive functions. You analyze information logically and 
+            generate well-reasoned conclusions.""",
+            tools=[self._logical_analysis]
         )
 
-        # Execute the cognitive pipeline
-        result = crew.kickoff()
+    @agent
+    def knowledge_integration_agent(self) -> Agent:
+        return Agent(
+            name="Knowledge Integrator",
+            role="Integrate information with existing knowledge",
+            goal="Connect new information with stored knowledge",
+            backstory="""You are responsible for connecting new information with existing 
+            knowledge, similar to how the brain integrates new learning with established 
+            memory networks.""",
+            tools=[self._knowledge_integration]
+        )
 
-        # Process and format results
-        return self._format_output({
-            'initial_query': input_data,
-            'analysis': self._process_crew_result(result),
-            'context': self.context,
-            'actions': [],
-            'memory_updates': []
-        })
+    @agent
+    def decision_synthesis_agent(self) -> Agent:
+        return Agent(
+            name="Decision Synthesizer",
+            role="Synthesize inputs into coherent decisions",
+            goal="Generate unified decisions and responses",
+            backstory="""You combine inputs from all other cognitive processes to generate 
+            coherent decisions and responses, similar to how the brain's executive 
+            functions integrate multiple processes for decision-making.""",
+            tools=[self._synthesize_decision]
+        )
 
-    def _process_crew_result(self, result: str) -> Dict[str, Any]:
-        """Process the crew execution results"""
-        # Parse and structure the results
-        analysis = {
-            'patterns': [],
-            'predictions': [],
-            'mathematical_insights': [],
-            'synthesis': result
-        }
-        
-        # Extract patterns and predictions from the result
-        if 'patterns identified:' in result.lower():
-            patterns_section = result.split('patterns identified:')[1].split('\n')[0]
-            analysis['patterns'] = [p.strip() for p in patterns_section.split(',')]
-            
-        if 'predictions:' in result.lower():
-            predictions_section = result.split('predictions:')[1].split('\n')[0]
-            analysis['predictions'] = [p.strip() for p in predictions_section.split(',')]
+    # Task Definitions
+    @task
+    def process_perception(self) -> Task:
+        return Task(
+            description="Process and structure incoming information",
+            agent=self.perception_agent(),
+            context={"stage": "initial_processing"},
+            next_tasks=["manage_working_memory"]
+        )
 
-        return analysis
+    @task
+    def manage_working_memory(self) -> Task:
+        return Task(
+            description="Maintain and update active information",
+            agent=self.working_memory_agent(),
+            next_tasks=["analyze_patterns"]
+        )
 
-    def _format_output(self, data: Dict[str, Any]) -> str:
-        """Format output for human readability"""
-        output = ["\n=== Cognitive Analysis Report ==="]
-        
-        # Format Initial Query Section
-        output.append("\n📝 Initial Query:")
-        output.append(f"  {data['initial_query']}")
-        
-        # Format Analysis Section
-        output.append("\n🔍 Analysis Results:")
-        if data['analysis'].get('patterns'):
-            output.append("  Identified Patterns:")
-            for pattern in data['analysis']['patterns']:
-                output.append(f"    • {pattern}")
-                
-        if data['analysis'].get('predictions'):
-            output.append("  Predictions:")
-            for pred in data['analysis']['predictions']:
-                output.append(f"    • {pred}")
-                
-        if data['analysis'].get('synthesis'):
-            output.append("\n📊 Synthesis:")
-            for line in data['analysis']['synthesis'].split('\n'):
-                output.append(f"  {line}")
-        
-        # Format Context Section
-        if data['context']:
-            output.append("\n📚 Current Context:")
-            for ctx in data['context']:
-                output.append(f"  • {ctx}")
-        
-        output.append("\n=== End Report ===\n")
-        return '\n'.join(output)
+    @task
+    def analyze_patterns(self) -> Task:
+        return Task(
+            description="Identify and analyze patterns",
+            agent=self.pattern_analysis_agent(),
+            next_tasks=["control_attention"]
+        )
+
+    @task
+    def control_attention(self) -> Task:
+        return Task(
+            description="Filter and prioritize information",
+            agent=self.attention_control_agent(),
+            next_tasks=["apply_reasoning"]
+        )
+
+    @task
+    def apply_reasoning(self) -> Task:
+        return Task(
+            description="Apply logical analysis",
+            agent=self.reasoning_agent(),
+            next_tasks=["integrate_knowledge"]
+        )
+
+    @task
+    def integrate_knowledge(self) -> Task:
+        return Task(
+            description="Connect with existing knowledge",
+            agent=self.knowledge_integration_agent(),
+            next_tasks=["synthesize_decision"]
+        )
+
+    @task
+    def synthesize_decision(self) -> Task:
+        return Task(
+            description="Generate final decision or response",
+            agent=self.decision_synthesis_agent()
+        )
+
+    # Define the crew
+    @crew
+    def crew(self) -> Crew:
+        return Crew(
+            agents=[
+                self.perception_agent(),
+                self.working_memory_agent(),
+                self.pattern_analysis_agent(),
+                self.attention_control_agent(),
+                self.reasoning_agent(),
+                self.knowledge_integration_agent(),
+                self.decision_synthesis_agent()
+            ],
+            tasks=[
+                self.process_perception(),
+                self.manage_working_memory(),
+                self.analyze_patterns(),
+                self.control_attention(),
+                self.apply_reasoning(),
+                self.integrate_knowledge(),
+                self.synthesize_decision()
+            ],
+            process=Process.sequential,
+            verbose=True
+        )
 
     # Tool implementations
-    def _determine_priority(self, input_data: Dict[str, Any]) -> int:
-        """Determine priority level for a task"""
-        content = str(input_data.get('content', '')).lower()
-        
-        priority_terms = {
-            5: ['urgent', 'critical', 'immediate', 'asap', 'emergency'],
-            4: ['important', 'priority', 'significant', 'crucial'],
-            3: ['soon', 'moderate', 'regular'],
-            2: ['when possible', 'low priority', 'optional']
-        }
-        
-        for priority, terms in priority_terms.items():
-            if any(term in content for term in terms):
-                return priority
-        return 1
-
-    def _pattern_recognition_analysis(self, input_data: str) -> Dict[str, Any]:
-        """Analyze patterns in the input"""
-        # Implementation would include pattern recognition logic
-        return {'patterns': [], 'confidence': 0.0}
-
-    def _mathematical_analysis(self, input_data: str) -> Dict[str, Any]:
-        """Perform mathematical analysis"""
-        # Implementation would include mathematical analysis logic
-        return {'explanation': '', 'confidence': 0.0}
-
-    def _synthesizer_summary(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """Synthesize analysis results"""
-        # Implementation would include synthesis logic
-        return {'summary': '', 'confidence': 0.0}
-
     def _extract_context(self, input_data: str) -> List[str]:
         """Extract context from input"""
         context = []
         keywords = {
-            'numerical_analysis': ['number', 'sequence', 'pattern'],
-            'mathematical': ['equation', 'formula', 'calculation'],
-            'pattern_recognition': ['pattern', 'sequence', 'trend']
+            'perception': ['visual', 'auditory', 'sensory', 'input'],
+            'memory': ['recall', 'remember', 'store', 'retrieve'],
+            'pattern': ['pattern', 'sequence', 'structure', 'relationship'],
+            'attention': ['focus', 'priority', 'important', 'critical'],
+            'reasoning': ['logic', 'analysis', 'solution', 'problem'],
+            'knowledge': ['learn', 'understand', 'connect', 'integrate'],
+            'decision': ['decide', 'choice', 'select', 'determine']
         }
         
         for category, terms in keywords.items():
@@ -197,3 +209,57 @@ class BrainCrew:
                 context.append(category)
         
         return context
+
+    def _update_memory(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Update working memory with new information"""
+        self.memory.append({
+            'timestamp': datetime.now().isoformat(),
+            'data': data
+        })
+        return {'status': 'memory_updated', 'data': data}
+
+    def _pattern_recognition_analysis(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Analyze patterns in the input"""
+        # Implementation of pattern recognition logic
+        return {'patterns': [], 'confidence': 0.0}
+
+    def _determine_priority(self, input_data: Dict[str, Any]) -> int:
+        """Determine priority level for processing"""
+        content = str(input_data.get('content', '')).lower()
+        
+        priority_terms = {
+            5: ['critical', 'immediate', 'urgent'],
+            4: ['important', 'significant'],
+            3: ['moderate', 'regular'],
+            2: ['background', 'routine']
+        }
+        
+        for priority, terms in priority_terms.items():
+            if any(term in content for term in terms):
+                return priority
+        return 1
+
+    def _logical_analysis(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Perform logical analysis on input"""
+        # Implementation of logical analysis
+        return {'analysis': '', 'confidence': 0.0}
+
+    def _knowledge_integration(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Integrate new information with existing knowledge"""
+        # Implementation of knowledge integration
+        return {'integrated': '', 'confidence': 0.0}
+
+    def _synthesize_decision(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Synthesize final decision from all inputs"""
+        # Implementation of decision synthesis
+        return {'decision': '', 'confidence': 0.0}
+
+    def process_input(self, input_data: Any) -> str:
+        """Process input through the cognitive pipeline"""
+        crew_instance = self.crew()
+        result = crew_instance.kickoff(inputs={'input': input_data})
+        return self._format_output(result)
+
+    def _format_output(self, result: str) -> str:
+        """Format the output for display"""
+        return f"\n=== Cognitive Processing Result ===\n{result}\n=== End Result ===\n"
