@@ -2,125 +2,147 @@
 
 A brain-inspired cognitive architecture implementing AI agents using CrewAI.
 
-## Overview
+## Quick Start
 
-This project implements a cognitive architecture that mirrors the brain's decision-making process using a team of specialized AI agents. Each agent represents different cognitive functions found in the human brain.
+### Prerequisites
 
-## Installation
+- Python 3.9 or higher
+- pip (Python package installer)
+- OpenAI API key
 
+### Installation
+
+1. Clone the repository:
 ```bash
-# Clone the repository
 git clone https://github.com/topherbc/brain.git
 cd brain
+```
 
-# Create and activate virtual environment
+2. Create and activate a virtual environment:
+```bash
+# On Linux/Mac:
+python3 -m venv venv
+source venv/bin/activate
+
+# On Windows:
 python -m venv venv
-source venv/bin/activate  # On Windows use: venv\Scripts\activate
+venv\Scripts\activate
+```
 
-# Install dependencies
+3. Install dependencies:
+```bash
 pip install -r requirements.txt
+```
+
+4. Set up your OpenAI API key:
+```bash
+# On Linux/Mac:
+export OPENAI_API_KEY='your-api-key-here'
+
+# On Windows (Command Prompt):
+set OPENAI_API_KEY=your-api-key-here
+
+# On Windows (PowerShell):
+$env:OPENAI_API_KEY='your-api-key-here'
+```
+
+Alternatively, create a `.env` file in the project root:
+```plaintext
+OPENAI_API_KEY=your-api-key-here
+```
+
+### Running Cognitive Tasks
+
+The project includes several analytical cognitive tasks you can run:
+
+1. Pattern Analysis:
+```bash
+python run_brain.py examples/tasks/cognitive_pattern_task.txt
+```
+- Analyzes number sequences
+- Identifies patterns
+- Predicts next values
+
+2. Decision Analysis:
+```bash
+python run_brain.py examples/tasks/decision_analysis_task.txt
+```
+- Evaluates decision paths
+- Performs risk assessment
+- Provides optimal solutions
+
+3. Logic Puzzle:
+```bash
+python run_brain.py examples/tasks/logic_puzzle_task.txt
+```
+- Solves constraint-based puzzles
+- Shows logical deduction steps
+- Validates solutions
+
+### Understanding the Output
+
+When you run a task, you'll see:
+1. Task description in a green panel
+2. Agent thinking process with progress indicators
+3. Intermediate analysis steps from each agent
+4. Final results in a formatted panel
+
+### Creating Your Own Tasks
+
+1. Create a new text file in `examples/tasks/` with the following structure:
+```plaintext
+[Task Description]
+Describe the main task or problem to solve.
+
+Constraints:
+- List any constraints
+- Add relevant limitations
+
+Requirements:
+- Specify what analysis is needed
+- List expected outputs
+```
+
+2. Run your task:
+```bash
+python run_brain.py path/to/your/task.txt
 ```
 
 ## Project Structure
 
 ```
 brain/
-├── brain/
-│   ├── __init__.py
-│   ├── agents/
-│   │   ├── __init__.py
-│   │   ├── sensory.py
-│   │   ├── memory.py
-│   │   ├── emotional.py
-│   │   ├── pattern.py
-│   │   ├── risk.py
-│   │   └── executive.py
-│   ├── tools/
-│   │   ├── __init__.py
-│   │   ├── text_cleaner.py
-│   │   ├── data_formatter.py
-│   │   └── analyzers.py
-│   └── crew.py
-├── tests/
-│   └── __init__.py
+├── brain/              # Core implementation
+│   ├── agents/         # Specialized AI agents
+│   ├── tools/          # Analysis tools
+│   └── crew.py         # Agent coordination
 ├── examples/
-│   ├── basic_decision.py
-│   ├── test_flow.py
-│   └── tasks/
-│       ├── task1.txt
-│       └── task2.txt
+│   ├── tasks/          # Example cognitive tasks
+│   └── test_flow.py    # Task processing script
+├── run_brain.py        # CLI runner
 ├── requirements.txt
 └── README.md
 ```
 
-## Testing and Execution
+## Troubleshooting
 
-### Basic Usage
+1. If you see an error about missing OPENAI_API_KEY:
+   - Ensure you've set the environment variable
+   - Check that your API key is valid
 
-```python
-from brain.crew import CognitiveCrew
+2. If you see import errors:
+   - Ensure you're in the virtual environment
+   - Try reinstalling requirements:
+     ```bash
+     pip install -r requirements.txt --upgrade
+     ```
 
-# Initialize the cognitive crew
-crew = CognitiveCrew()
-
-# Process input and get decision
-result = crew.process_input("Your input here")
-```
-
-### Testing with Task Files
-
-You can test the system using predefined task files. The project includes example task files in the `examples/tasks/` directory.
-
-1. Run the test flow script:
-```bash
-python examples/test_flow.py
-```
-
-This will process all example tasks and show the decision flow of each agent.
-
-2. Create your own task file:
-Task files should include:
-- Clear task description
-- Context information
-- Specific requirements
-
-Example task file format:
-```text
-[Task Description]
-
-Context:
-- Key context point 1
-- Key context point 2
-
-Requirements:
-- Requirement 1
-- Requirement 2
-```
-
-### Viewing Agent Decision Flow
-
-To see detailed agent decision flows:
-
-1. Enable verbose mode when initializing:
-```python
-crew = CognitiveCrew(verbose=True)
-```
-
-2. Watch the console output to see:
-- Each agent's thought process
-- Decision handoffs between agents
-- Final consolidated results
-
-### Creating Custom Tests
-
-1. Create a new task file in `examples/tasks/`
-2. Run the test flow script with your file:
-```python
-from examples.test_flow import process_task_file
-
-results = process_task_file('path/to/your/task.txt')
-print(results)
-```
+3. For rich output formatting issues:
+   - Ensure your terminal supports Unicode
+   - Try updating rich:
+     ```bash
+     pip install rich --upgrade
+     ```
 
 ## License
 
