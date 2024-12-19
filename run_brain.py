@@ -3,7 +3,7 @@
 import sys
 import os
 import logging
-from brain.crew import CognitiveCrew
+from brain.crew import CognitiveCrew, ProcessingType
 from rich.console import Console
 from rich.logging import RichHandler
 from rich.panel import Panel
@@ -34,19 +34,20 @@ def display_thinking_process(message: str):
     ) as progress:
         progress.add_task(description=message, total=None)
 
-def process_task_file(file_path: str) -> dict:
+def process_task_file(file_path: str, processing_type: ProcessingType = ProcessingType.ANALYTICAL) -> dict:
     """Process a task from a file with rich output formatting."""
     try:
         # Read task file
         with open(file_path, 'r') as f:
             task_content = f.read()
 
-        # Display task content
+        # Display task content and processing type
         console.print(Panel(task_content, title="[bold green]Task Input[/bold green]", 
                            border_style="green"))
+        console.print(f"\n[bold yellow]Processing Type: {processing_type.value}[/bold yellow]")
 
         # Initialize cognitive crew
-        crew = CognitiveCrew(verbose=True)
+        crew = CognitiveCrew(processing_type=processing_type)
 
         console.print("\n[bold yellow]Initiating Cognitive Analysis[/bold yellow]")
 
@@ -74,12 +75,17 @@ def process_task_file(file_path: str) -> dict:
         sys.exit(1)
 
 def main():
-    if len(sys.argv) != 2:
-        console.print("[bold red]Usage: python run_brain.py <path_to_task_file>[/bold red]")
+    if len(sys.argv) < 2:
+        console.print("[bold red]Usage: python run_brain.py <path_to_task_file> [analytical|emotional][/bold red]")
         sys.exit(1)
 
     task_file = sys.argv[1]
-    process_task_file(task_file)
+    processing_type = ProcessingType.ANALYTICAL  # Default to analytical
+    
+    if len(sys.argv) > 2 and sys.argv[2].lower() == 'emotional':
+        processing_type = ProcessingType.EMOTIONAL
+
+    process_task_file(task_file, processing_type)
 
 if __name__ == '__main__':
     main()
