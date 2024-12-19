@@ -6,6 +6,7 @@ from .agents.emotional import EmotionalEvaluator
 from .agents.pattern import PatternRecognizer
 from .agents.risk import RiskAssessor
 from .agents.executive import ExecutiveController
+from .agents.specialist import SpecialistSynthesizer
 
 class CognitiveCrew:
     def __init__(self):
@@ -21,7 +22,8 @@ class CognitiveCrew:
             'emotional': EmotionalEvaluator.create(),
             'pattern': PatternRecognizer.create(),
             'risk': RiskAssessor.create(),
-            'executive': ExecutiveController.create()
+            'executive': ExecutiveController.create(),
+            'specialist': SpecialistSynthesizer.create()
         }
     
     def _create_tasks(self) -> List[Task]:
@@ -58,10 +60,16 @@ class CognitiveCrew:
                 expected_output="Risk assessment report"
             ),
             Task(
-                description="Make executive decision",
+                description="Coordinate cognitive processes",
                 agent=self.agents['executive'],
-                context="Synthesize all analyses into final decision",
-                expected_output="Final decision and rationale"
+                context="Guide attention and maintain focus on relevant aspects",
+                expected_output="Coordinated cognitive state and attention focus"
+            ),
+            Task(
+                description="Synthesize final decision",
+                agent=self.agents['specialist'],
+                context="Integrate all cognitive inputs into final decision",
+                expected_output="Final synthesized decision with rationale"
             )
         ]
         
@@ -97,13 +105,14 @@ class CognitiveCrew:
         # Parse and return final result
         try:
             return {
-                'decision': result[-1],  # Final executive decision
+                'decision': result[-1],  # Specialist's final decision
                 'analysis': {
                     'sensory': result[0],
                     'memory': result[1],
                     'emotional': result[2],
                     'pattern': result[3],
-                    'risk': result[4]
+                    'risk': result[4],
+                    'executive': result[5]  # Executive's coordination notes
                 }
             }
         except Exception as e:
