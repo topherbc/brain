@@ -1,10 +1,11 @@
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from langchain.tools import BaseTool
 from brain.agents.memory import MemorySystem
 
 class ExtractContextTool(BaseTool):
-    name = "extract_context"
-    description = "Extracts relevant contextual information from input data"
+    name: str = "extract_context"
+    description: str = "Extracts relevant contextual information from input data"
+    return_direct: bool = False
 
     def __init__(self):
         super().__init__()
@@ -42,6 +43,6 @@ class ExtractContextTool(BaseTool):
 
         return context
 
-    def _arun(self, data: Any) -> Dict[str, Any]:
+    async def _arun(self, data: Any) -> Dict[str, Any]:
         """Async version of run"""
         raise NotImplementedError("ExtractContextTool does not support async")
