@@ -1,9 +1,4 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
 
 const App = () => {
   const [input, setInput] = useState('');
@@ -33,72 +28,58 @@ const App = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold text-center text-gray-900">Brain Project Interface</CardTitle>
-            <CardDescription className="text-center text-gray-600">
-              Enter your text and select a domain for processing
-            </CardDescription>
-          </CardHeader>
+    <div className="w-full min-h-screen bg-gray-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-3xl bg-white rounded-lg shadow-lg p-6">
+        <h1 className="text-2xl font-bold text-center text-gray-900 mb-4">
+          Brain Project Interface
+        </h1>
+        <p className="text-center text-gray-600 mb-6">
+          Enter your text and select a domain for processing
+        </p>
+        
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Enter your text here..."
+              className="w-full h-32 px-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:border-blue-500 resize-none"
+              required
+            />
+          </div>
           
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <Textarea
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Enter your text here..."
-                  className="h-32 resize-none"
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Select value={domain} onValueChange={setDomain}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a domain" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="general">General</SelectItem>
-                    <SelectItem value="scientific">Scientific</SelectItem>
-                    <SelectItem value="creative">Creative</SelectItem>
-                    <SelectItem value="analytical">Analytical</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+          <div>
+            <select
+              value={domain}
+              onChange={(e) => setDomain(e.target.value)}
+              className="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:border-blue-500"
+            >
+              <option value="general">General</option>
+              <option value="scientific">Scientific</option>
+              <option value="creative">Creative</option>
+              <option value="analytical">Analytical</option>
+            </select>
+          </div>
 
-              <Button 
-                type="submit" 
-                className="w-full"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  'Process Text'
-                )}
-              </Button>
-            </form>
-          </CardContent>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoading ? 'Processing...' : 'Process Text'}
+          </button>
+        </form>
 
-          {response && (
-            <CardFooter className="border-t">
-              <div className="w-full space-y-2">
-                <h3 className="font-medium text-gray-900">Response:</h3>
-                <div className="bg-white p-4 rounded-md border">
-                  <pre className="whitespace-pre-wrap break-words text-sm">
-                    {response}
-                  </pre>
-                </div>
-              </div>
-            </CardFooter>
-          )}
-        </Card>
+        {response && (
+          <div className="mt-6 pt-6 border-t">
+            <h3 className="font-medium text-gray-900 mb-2">Response:</h3>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <pre className="whitespace-pre-wrap break-words text-sm text-gray-700">
+                {response}
+              </pre>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
