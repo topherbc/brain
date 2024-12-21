@@ -1,39 +1,37 @@
-from typing import Dict, Any
-from .base import BaseAgent
+from typing import Any, Dict, List, Optional
+from pydantic import Field
+from .base import BrainAgent
+from ..tools.analysis import TextAnalysisTool, DataAnalysisTool
 
-class SensoryAgent(BaseAgent):
-    """Agent responsible for initial sensory processing of inputs."""
+class SensoryProcessor(BrainAgent):
+    """Agent responsible for initial sensory processing and feature extraction."""
+    name: str = Field(default="sensory_processor", description="Sensory processing agent")
+    role: str = Field(default="sensory_processing", description="Initial input processing and feature extraction")
+    goal: str = Field(
+        default="Process and extract meaningful features from input data",
+        description="Extract and organize sensory information"
+    )
     
-    def _get_agent_config(self) -> Dict[str, Any]:
-        """Get sensory agent configuration.
-        
-        Returns:
-            Dictionary containing agent configuration
-        """
-        return {
-            'name': 'Sensory Processing',
-            'goal': 'Process and extract features from input data',
-            'backstory': 'Specialized in initial data processing and feature extraction',
-            'allow_delegation': False,
-            'tools': self.config.get('tools', []),
-            'verbose': self.config.get('verbose', False)
-        }
+    tools: List[Any] = Field(default_factory=lambda: [
+        TextAnalysisTool(),
+        DataAnalysisTool()
+    ])
     
-    def process_input(self, input_data: Any) -> Dict[str, Any]:
-        """Process input data through sensory analysis.
-        
-        Args:
-            input_data: Raw input data to process
-            
-        Returns:
-            Dictionary containing processed features
-        """
-        # Initial processing logic
+    async def process(self, input_data: Any) -> Dict[str, Any]:
         features = {}
         
-        # Extract basic features based on input type
         if isinstance(input_data, str):
-            features['text_length'] = len(input_data)
-            features['word_count'] = len(input_data.split())
-        
-        return features
+            tool = next(t for t in self.tools if isinstance(t, TextAnalysisTool))
+            features = await tool.analyze(input_data)
+        elif isinstance(input_data, (dict, list)):
+            tool = next(t for t in self.tools if isinstance(t, DataAnalysisTool))
+            features = await tool.analyze(input_data)
+            
+        return {
+            "agent": self.name,
+            "features": features,
+            "metadata": {
+                "input_type": type(input_data).__name__,
+                "processing_status": "complete"
+            }
+        }
