@@ -112,7 +112,7 @@ class ThinkingProcess:
         specialization_context = f" with {specialization} domain expertise" if specialization else ""
         
         return Agent(
-            role=f"Strategic Director{f' ({specialization or 'General'})' if specialization else ''}",
+            role=f"Strategic Director{f' ({str(specialization or "General")})' if specialization else ''}",
             goal=f"Synthesize analyses according to complexity level {complexity}/10: {complexity_guidance}",
             backstory=f"You function like the brain's executive regions{specialization_context}, integrating diverse \
             analyses into coherent understanding. Your role is to synthesize expert insights \
