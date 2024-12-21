@@ -12,8 +12,8 @@ from pydantic import BaseModel
 from typing import Optional
 import uvicorn
 
-# Import the CognitiveCrew from your existing project
-from src.brain import CognitiveCrew
+# Import the ThinkingProcess from brain2
+from src.brain2 import ThinkingProcess
 
 # Initialize FastAPI app
 app = FastAPI(title="Brain Project API")
@@ -27,12 +27,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize CognitiveCrew
+# Initialize ThinkingProcess
 try:
-    crew = CognitiveCrew(verbose=True)
+    brain = ThinkingProcess(verbose=True)
 except Exception as e:
-    print(f"Error initializing CognitiveCrew: {e}")
-    crew = None
+    print(f"Error initializing ThinkingProcess: {e}")
+    brain = None
 
 class ProcessRequest(BaseModel):
     input: str
@@ -45,15 +45,15 @@ class ProcessResponse(BaseModel):
 
 @app.post("/api/process", response_model=ProcessResponse)
 async def process_input(request: ProcessRequest):
-    if crew is None:
+    if brain is None:
         raise HTTPException(
             status_code=500,
-            detail="CognitiveCrew not properly initialized"
+            detail="ThinkingProcess not properly initialized"
         )
 
     try:
-        # Process the input using CognitiveCrew
-        result = crew.process_input(
+        # Process the input using ThinkingProcess
+        result = brain.process(
             request.input,
             domain=request.domain
         )
@@ -78,7 +78,7 @@ async def process_input(request: ProcessRequest):
 
 @app.get("/api/health")
 async def health_check():
-    return {"status": "healthy", "crew_initialized": crew is not None}
+    return {"status": "healthy", "brain_initialized": brain is not None}
 
 if __name__ == "__main__":
     # Get port from environment variable or default to 8000
