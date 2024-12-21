@@ -1,9 +1,16 @@
+import os
+import sys
+from pathlib import Path
+
+# Add the project root to Python path
+project_root = Path(__file__).parent.parent
+sys.path.append(str(project_root))
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
 import uvicorn
-import os
 
 # Import the CognitiveCrew from your existing project
 from src.brain import CognitiveCrew
@@ -21,7 +28,11 @@ app.add_middleware(
 )
 
 # Initialize CognitiveCrew
-crew = CognitiveCrew(verbose=True)
+try:
+    crew = CognitiveCrew(verbose=True)
+except Exception as e:
+    print(f"Error initializing CognitiveCrew: {e}")
+    crew = None
 
 class ProcessRequest(BaseModel):
     input: str
@@ -34,6 +45,12 @@ class ProcessResponse(BaseModel):
 
 @app.post("/api/process", response_model=ProcessResponse)
 async def process_input(request: ProcessRequest):
+    if crew is None:
+        raise HTTPException(
+            status_code=500,
+            detail="CognitiveCrew not properly initialized"
+        )
+
     try:
         # Process the input using CognitiveCrew
         result = crew.process_input(
@@ -41,16 +58,16 @@ async def process_input(request: ProcessRequest):
             domain=request.domain
         )
         
-        # Check the result status
-        if result.get('status') == 'success':
+        # Check if result is a string (error message) or a successful result
+        if isinstance(result, str) and "error" in result.lower():
             return {
-                "status": "success",
-                "result": result.get('result')
+                "status": "error",
+                "error": result
             }
         else:
             return {
-                "status": "error",
-                "error": result.get('error', 'Unknown error occurred')
+                "status": "success",
+                "result": {"output": result}
             }
             
     except Exception as e:
@@ -61,7 +78,7 @@ async def process_input(request: ProcessRequest):
 
 @app.get("/api/health")
 async def health_check():
-    return {"status": "healthy"}
+    return {"status": "healthy", "crew_initialized": crew is not None}
 
 if __name__ == "__main__":
     # Get port from environment variable or default to 8000
@@ -69,7 +86,7 @@ if __name__ == "__main__":
     
     # Run the FastAPI application
     uvicorn.run(
-        "app",
+        "main:app",
         host="0.0.0.0",
         port=port,
         reload=True  # Enable auto-reload during development
