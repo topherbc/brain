@@ -1,241 +1,87 @@
 import os
-import logging
-from typing import List, Optional, Any
+from typing import Optional, Any
 from crewai import Agent, Task, Crew, Process
-from datetime import datetime
-from pydantic import BaseModel, Field
 from dotenv import load_dotenv
-
-# Reduce logging noise
-logging.basicConfig(
-    level=logging.WARNING,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
 
 class CognitiveCrew:
     def __init__(self, verbose: bool = False):
-        """
-        Initialize the Cognitive Crew with configurable verbosity
-        
-        :param verbose: Enables detailed logging and output
-        """
         self.verbose = verbose
-        
-        # Initialize crew
-        self.crew_instance = self._create_crew()
+        self.crew = self._create_crew()
 
-    def _create_sensory_agent(self) -> Agent:
-        """
-        Sensory Processing Agent
-        Raw input perception and initial feature extraction
-        """
+    def _create_input_processor(self) -> Agent:
+        """Input processing and understanding"""
         return Agent(
-            role="Sensory Perception Specialist",
-            goal="Precisely extract key elements, keywords, and semantic signals from the input",
+            role="Input Processor",
+            goal="Understand input and determine appropriate processing depth",
             backstory=(
-                "You are the initial point of cognitive processing. Your job is to break down "
-                "the input into its most fundamental components. Extract exact keywords, "
-                "identify the primary intent, and capture the core semantic signals with "
-                "laser-sharp precision. Do not summarize or interpret - just extract."
+                "You are the initial processor that determines how to handle input. "
+                "For simple questions, provide direct answers. For complex queries, "
+                "coordinate deeper analysis. Always maintain focus on the original question."
             ),
-            tools=[],
-            allow_delegation=False,
             verbose=self.verbose
         )
 
-    def _create_pattern_recognition_agent(self) -> Agent:
-        """
-        Pattern Recognition Agent
-        Identifies underlying structures and connections
-        """
+    def _create_knowledge_agent(self) -> Agent:
+        """Knowledge retrieval and context integration"""
         return Agent(
-            role="Cognitive Pattern Analyst",
-            goal="Identify and map underlying cognitive patterns and structural relationships",
+            role="Knowledge Integrator",
+            goal="Retrieve relevant information and integrate necessary context",
             backstory=(
-                "You specialize in uncovering hidden connections and structural patterns. "
-                "Analyze the extracted features to reveal underlying cognitive frameworks. "
-                "Create a clear, logical mapping of how different elements interrelate. "
-                "Your output should be a structured breakdown of conceptual connections."
+                "You retrieve and integrate relevant knowledge based on query needs. "
+                "For simple questions, provide straightforward facts. For complex ones, "
+                "add necessary context and relationships. Avoid over-complication."
             ),
-            tools=[],
-            allow_delegation=False,
             verbose=self.verbose
         )
 
-    def _create_memory_agent(self) -> Agent:
-        """
-        Working Memory Agent
-        Contextualizes and integrates information
-        """
+    def _create_response_agent(self) -> Agent:
+        """Final response synthesis"""
         return Agent(
-            role="Contextual Memory Integrator",
-            goal="Synthesize and contextualize extracted information into a comprehensive framework",
+            role="Response Synthesizer",
+            goal="Create clear, appropriate responses scaled to query complexity",
             backstory=(
-                "You are responsible for creating a holistic context for the information. "
-                "Take the pattern-identified features and weave them into a coherent narrative. "
-                "Provide a comprehensive context that explains how different elements interact "
-                "and contribute to the overall understanding of the input."
+                "You create final responses that match query complexity. "
+                "Simple questions get direct answers. Complex queries get "
+                "detailed analysis. Always maintain clarity and relevance."
             ),
-            tools=[],
-            allow_delegation=False,
-            verbose=self.verbose
-        )
-
-    def _create_risk_assessment_agent(self) -> Agent:
-        """
-        Risk and Uncertainty Analysis Agent
-        Evaluates potential implications and limitations
-        """
-        return Agent(
-            role="Cognitive Risk Assessor",
-            goal="Critically evaluate potential implications, limitations, and areas of uncertainty",
-            backstory=(
-                "Your role is to provide a critical, analytical perspective on the integrated "
-                "information. Identify potential blind spots, assess risks, and highlight "
-                "areas of uncertainty. Your analysis should reveal potential limitations "
-                "or challenges in the current understanding."
-            ),
-            tools=[],
-            allow_delegation=False,
-            verbose=self.verbose
-        )
-
-    def _create_analytical_agent(self) -> Agent:
-        """
-        Analytical Reasoning Agent
-        Generates deep insights and precise reasoning
-        """
-        return Agent(
-            role="Advanced Analytical Reasoner",
-            goal="Generate sophisticated insights and provide precise, actionable reasoning",
-            backstory=(
-                "You are the highest level of cognitive processing. Transform the integrated "
-                "and risk-assessed information into sophisticated, nuanced insights. "
-                "Develop clear, actionable recommendations that address the core intent "
-                "of the original input with depth and precision."
-            ),
-            tools=[],
-            allow_delegation=False,
-            verbose=self.verbose
-        )
-
-    def _create_specialist_agent(self) -> Agent:
-        """
-        Domain-Specific Specialist Agent
-        Provides expert-level insights based on input domain
-        """
-        return Agent(
-            role="Domain-Specific Knowledge Expert",
-            goal="Provide expert-level, domain-specific insights that add depth to the analysis",
-            backstory=(
-                "You are a specialized expert tailored to the specific domain of the input. "
-                "Apply deep, domain-specific knowledge to provide nuanced insights that "
-                "go beyond general reasoning. Offer practical, expert-level recommendations "
-                "that leverage specialized understanding."
-            ),
-            tools=[],
-            allow_delegation=False,
-            verbose=self.verbose
-        )
-
-    def _create_executive_agent(self) -> Agent:
-        """
-        Executive Function Agent
-        Synthesizes final output and ensures coherence
-        """
-        return Agent(
-            role="Cognitive Executive Synthesizer",
-            goal="Synthesize the final output into a clear, coherent, and actionable response",
-            backstory=(
-                "Your ultimate function is to take all previous insights and synthesize them "
-                "into a single, coherent, and directly actionable response. Ensure the final "
-                "output is crisp, clear, and provides immediate value to the user."
-            ),
-            tools=[],
-            allow_delegation=False,
             verbose=self.verbose
         )
 
     def _create_crew(self) -> Crew:
-        """
-        Create the cognitive processing crew with neural-like sequential processing
-        """
-        # Create agents
+        """Create the cognitive processing crew"""
         agents = [
-            self._create_sensory_agent(),
-            self._create_pattern_recognition_agent(),
-            self._create_memory_agent(),
-            self._create_risk_assessment_agent(),
-            self._create_analytical_agent(),
-            self._create_specialist_agent(),
-            self._create_executive_agent()
+            self._create_input_processor(),
+            self._create_knowledge_agent(),
+            self._create_response_agent()
         ]
 
-        # Define tasks with explicit instructions
         tasks = [
             Task(
                 description=(
-                    "Extract precise keywords, identify primary intent, "
-                    "and capture core semantic signals from the input. "
-                    "CRITICAL: Do NOT summarize. Provide raw, exact extraction."
+                    "Analyze the input and determine appropriate processing level. "
+                    "For simple queries like 'What color is the sky?', flag for basic processing. "
+                    "For complex queries, identify aspects needing deeper analysis."
                 ),
-                agent=agents[0],
-                expected_output=(
-                    "A list of exact keywords, core intent, and primary semantic signals, "
-                    "with no interpretation or summary"
-                )
+                agent=agents[0]
             ),
             Task(
                 description=(
-                    "Analyze extracted features to reveal underlying cognitive patterns. "
-                    "Create a structured mapping of conceptual connections."
+                    "Based on processing level, retrieve and integrate relevant information. "
+                    "For basic queries, provide direct facts. For complex queries, "
+                    "add necessary context and relationships."
                 ),
-                agent=agents[1],
-                expected_output="A clear, logical mapping of conceptual relationships and patterns"
+                agent=agents[1]
             ),
             Task(
                 description=(
-                    "Synthesize the pattern-identified features into a comprehensive context. "
-                    "Explain how different elements interact and contribute to understanding."
+                    "Create a clear, appropriate response matching query complexity. "
+                    "Simple questions get straightforward answers. Complex queries "
+                    "get appropriately detailed responses."
                 ),
-                agent=agents[2],
-                expected_output="A holistic contextual framework explaining interconnections"
-            ),
-            Task(
-                description=(
-                    "Critically evaluate potential implications, limitations, "
-                    "and areas of uncertainty in the current understanding."
-                ),
-                agent=agents[3],
-                expected_output="A detailed analysis of potential risks and limitations"
-            ),
-            Task(
-                description=(
-                    "Transform integrated and risk-assessed information into "
-                    "sophisticated, nuanced insights. Develop clear, actionable recommendations."
-                ),
-                agent=agents[4],
-                expected_output="Sophisticated insights with precise, actionable recommendations"
-            ),
-            Task(
-                description=(
-                    "Apply deep, domain-specific knowledge to provide nuanced, "
-                    "expert-level insights that add depth to the analysis."
-                ),
-                agent=agents[5],
-                expected_output="Expert-level insights specific to the input's domain"
-            ),
-            Task(
-                description=(
-                    "Synthesize all previous insights into a single, coherent, "
-                    "and directly actionable response."
-                ),
-                agent=agents[6],
-                expected_output="A crisp, clear, and immediately actionable final response"
+                agent=agents[2]
             )
         ]
 
@@ -243,69 +89,49 @@ class CognitiveCrew:
             agents=agents,
             tasks=tasks,
             process=Process.sequential,
-            verbose=self.verbose,
-            model_kwargs={
-                "temperature": 0.4,  # Balanced between creativity and precision
-                "max_tokens": 2000,  # Increased to allow more comprehensive processing
-                "top_p": 0.8  # Allows for more diverse but still focused responses
-            }
+            verbose=self.verbose
         )
 
-    def process_input(self, input_data: Any, domain: Optional[str] = None) -> str:
-        """
-        Process input through the advanced cognitive pipeline
-        
-        :param input_data: Input to be processed
-        :param domain: Optional domain-specific context
-        """
+    def process_input(self, input_data: Any) -> str:
+        """Process input through the cognitive pipeline"""
         try:
             if input_data is None:
                 raise ValueError("Input cannot be None")
             
             if self.verbose:
-                print(f"\n🧠 Advanced Cognitive Processing Input: '{input_data}'")
+                print(f"\n🧠 Processing Input: '{input_data}'")
             
-            # Customize specialist agent if domain is provided
-            if domain:
-                self.crew_instance.agents[-2].backstory = (
-                    f"You are a specialized expert in the {domain} domain. "
-                    "Provide nuanced, expert-level insights specific to this field, "
-                    "drawing on deep domain knowledge to offer precise and relevant interpretations."
-                )
-            
-            # Process input through the crew
-            result = self.crew_instance.kickoff(inputs={'input': input_data})
+            result = self.crew.kickoff(inputs={'input': input_data})
             
             if self.verbose:
-                print("\n🔬 Final Cognitive Output:")
+                print("\n🔬 Output:")
                 print(result)
             
             return str(result)
         
         except Exception as e:
-            error_msg = f"Advanced cognitive processing error: {e}"
+            error_msg = f"Processing error: {e}"
             print(error_msg)
-            logger.error(error_msg)
             return error_msg
 
 def main():
-    # Initialize Cognitive Crew with verbose output
-    cognitive_crew = CognitiveCrew(verbose=True)
+    # Test the crew with different complexity queries
+    crew = CognitiveCrew(verbose=True)
     
-    # Test with sample inputs
+    # Test cases
     test_inputs = [
-        ("Explain quantum computing in simple terms", "physics"),
-        ("How can I improve my productivity?", "personal development"),
-        ("What are the latest trends in artificial intelligence?", "technology")
+        "What color is the sky?",  # Simple query
+        "How does quantum computing work?",  # Complex query
+        "What's 2+2?",  # Simple math
+        "What are the implications of AI on society?"  # Complex analysis
     ]
     
-    # Process each input
-    for input_text, domain in test_inputs:
+    for input_text in test_inputs:
         print("\n" + "="*50)
         print(f"Processing: {input_text}")
         print("="*50)
         
-        result = cognitive_crew.process_input(input_text, domain)
+        result = crew.process_input(input_text)
 
 if __name__ == "__main__":
     main()
