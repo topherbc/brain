@@ -29,20 +29,20 @@ class ThinkingProcess:
         perception_agent = Agent(
             role="Core Pattern Analyzer",
             goal="Extract and organize fundamental patterns from input, preparing them for contextual integration",
-            backstory="""You are specialized in identifying foundational patterns in information, 
-            similar to how the brain's sensory regions detect key features. Your process mirrors 
-            how the brain transforms raw input into meaningful patterns, enabling deeper analysis. 
-            You break down complex inputs into essential components and relationships.""",
+            backstory="You are specialized in identifying foundational patterns in information, \
+            similar to how the brain's sensory regions detect key features. Your process mirrors \
+            how the brain transforms raw input into meaningful patterns, enabling deeper analysis. \
+            You break down complex inputs into essential components and relationships.",
             verbose=self.verbose
         )
 
         context_agent = Agent(
             role="Context Integration Specialist",
             goal="Transform pattern analysis into contextually-rich frameworks",
-            backstory="""You excel at weaving individual patterns into rich contextual frameworks, 
-            similar to how the brain's associative regions create meaning from separate elements. 
-            You build comprehensive understanding by connecting current patterns with relevant 
-            background knowledge, creating complete contextual pictures for expert analysis.""",
+            backstory="You excel at weaving individual patterns into rich contextual frameworks, \
+            similar to how the brain's associative regions create meaning from separate elements. \
+            You build comprehensive understanding by connecting current patterns with relevant \
+            background knowledge, creating complete contextual pictures for expert analysis.",
             verbose=self.verbose
         )
 
@@ -52,20 +52,20 @@ class ThinkingProcess:
         expert1 = Agent(
             role="Primary Domain Expert",
             goal="Provide focused, domain-specific insights based on contextual patterns",
-            backstory="""You represent deep specialized processing capability, similar to how 
-            dedicated brain regions develop expertise in specific types of information processing. 
-            Your analysis draws from extensive domain knowledge to evaluate patterns within their 
-            specific context, highlighting critical factors and potential implications.""",
+            backstory="You represent deep specialized processing capability, similar to how \
+            dedicated brain regions develop expertise in specific types of information processing. \
+            Your analysis draws from extensive domain knowledge to evaluate patterns within their \
+            specific context, highlighting critical factors and potential implications.",
             verbose=self.verbose
         )
 
         expert2 = Agent(
             role="Secondary Domain Expert",
             goal="Enrich primary analysis with complementary domain insights",
-            backstory="""You provide essential alternative perspectives, similar to how the brain 
-            processes information through complementary pathways. Your expertise offers different 
-            but related viewpoints that enrich the primary analysis, identifying additional factors 
-            and alternative interpretations.""",
+            backstory="You provide essential alternative perspectives, similar to how the brain \
+            processes information through complementary pathways. Your expertise offers different \
+            but related viewpoints that enrich the primary analysis, identifying additional factors \
+            and alternative interpretations.",
             verbose=self.verbose
         )
 
@@ -75,11 +75,11 @@ class ThinkingProcess:
         return Agent(
             role="Strategic Director",
             goal="Synthesize analyses into coherent, actionable insights",
-            backstory="""You function like the brain's executive regions, integrating diverse 
-            analyses into coherent understanding. Your role is to synthesize expert insights 
-            into clear, actionable conclusions while maintaining awareness of broader implications, 
-            similar to how the prefrontal cortex coordinates and integrates information for 
-            decision-making.""",
+            backstory="You function like the brain's executive regions, integrating diverse \
+            analyses into coherent understanding. Your role is to synthesize expert insights \
+            into clear, actionable conclusions while maintaining awareness of broader implications, \
+            similar to how the prefrontal cortex coordinates and integrates information for \
+            decision-making.",
             verbose=self.verbose
         )
 
@@ -87,20 +87,28 @@ class ThinkingProcess:
         agents = self._create_thinking_agents()
         tasks = [
             Task(
-                description="For the question: '{input}', identify and analyze fundamental patterns. 
-                             Break down the input into essential components and relationships, 
-                             extracting key elements that will form the basis for higher-level processing.",
+                description=(
+                    "For the question: '{input}', identify and analyze fundamental patterns. "
+                    "Break down the input into essential components and relationships, "
+                    "extracting key elements that will form the basis for higher-level processing."
+                ),
                 agent=agents[0],
-                expected_output="A structured analysis of core patterns and their relationships, 
-                               organized to facilitate contextual integration"
+                expected_output=(
+                    "A structured analysis of core patterns and their relationships, "
+                    "organized to facilitate contextual integration"
+                )
             ),
             Task(
-                description="Using the identified patterns from '{input}', construct a comprehensive 
-                             contextual framework. Integrate historical knowledge, current implications, 
-                             and relevant background information to create a complete picture for expert analysis.",
+                description=(
+                    "Using the identified patterns from '{input}', construct a comprehensive "
+                    "contextual framework. Integrate historical knowledge, current implications, "
+                    "and relevant background information to create a complete picture for expert analysis."
+                ),
                 agent=agents[1],
-                expected_output="Rich contextual framework that connects identified patterns with 
-                               broader understanding and implications"
+                expected_output=(
+                    "Rich contextual framework that connects identified patterns with "
+                    "broader understanding and implications"
+                )
             )
         ]
         
@@ -115,20 +123,28 @@ class ThinkingProcess:
         agents = self._create_expert_agents()
         tasks = [
             Task(
-                description="Analyze '{input}' and the provided context through your primary domain 
-                             expertise. Focus on critical factors, potential implications, and 
-                             domain-specific insights based on the contextual patterns.",
+                description=(
+                    "Analyze '{input}' and the provided context through your primary domain "
+                    "expertise. Focus on critical factors, potential implications, and "
+                    "domain-specific insights based on the contextual patterns."
+                ),
                 agent=agents[0],
-                expected_output="Detailed primary domain analysis highlighting key insights, 
-                               critical factors, and specific implications"
+                expected_output=(
+                    "Detailed primary domain analysis highlighting key insights, "
+                    "critical factors, and specific implications"
+                )
             ),
             Task(
-                description="Examine '{input}' from your complementary domain perspective, 
-                             considering the primary analysis. Identify additional factors, 
-                             alternative interpretations, and enriching viewpoints.",
+                description=(
+                    "Examine '{input}' from your complementary domain perspective, "
+                    "considering the primary analysis. Identify additional factors, "
+                    "alternative interpretations, and enriching viewpoints."
+                ),
                 agent=agents[1],
-                expected_output="Complementary analysis providing alternative perspectives and 
-                               additional considerations that enrich understanding"
+                expected_output=(
+                    "Complementary analysis providing alternative perspectives and "
+                    "additional considerations that enrich understanding"
+                )
             )
         ]
         
@@ -145,12 +161,16 @@ class ThinkingProcess:
         
         tasks = [
             Task(
-                description="For the question '{input}', evaluate and integrate all expert analyses. 
-                             Synthesize the insights into clear, actionable recommendations while 
-                             maintaining awareness of broader implications.",
+                description=(
+                    "For the question '{input}', evaluate and integrate all expert analyses. "
+                    "Synthesize the insights into clear, actionable recommendations while "
+                    "maintaining awareness of broader implications."
+                ),
                 agent=director,
-                expected_output="Coherent synthesis of expert insights with clear, actionable 
-                               recommendations and consideration of broader context"
+                expected_output=(
+                    "Coherent synthesis of expert insights with clear, actionable "
+                    "recommendations and consideration of broader context"
+                )
             )
         ]
         
