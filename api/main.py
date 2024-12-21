@@ -8,7 +8,7 @@ sys.path.append(str(project_root))
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 import uvicorn
 
@@ -35,11 +35,18 @@ except Exception as e:
     brain = None
 
 class ProcessRequest(BaseModel):
-    text: str  # Changed from 'input' to match frontend
-    domain: Optional[str] = None
+    text: str
+    domain: Optional[str] = Field(default="general", description="Processing domain (e.g., general, scientific, creative, analytical)")
+    specialization: Optional[str] = Field(default="", description="Specific area of expertise (e.g., neuroscience, poetry)")
+    complexity: Optional[int] = Field(
+        default=5,
+        ge=1,
+        le=10,
+        description="Desired response complexity level (1-10, where 1 is most concise and 10 is most complex)"
+    )
 
 class ProcessResponse(BaseModel):
-    response: str  # Changed to match what frontend expects
+    response: str
 
 @app.post("/process")
 async def process_input(request: ProcessRequest):
@@ -53,7 +60,9 @@ async def process_input(request: ProcessRequest):
         # Process the input using ThinkingProcess
         result = brain.process(
             request.text,
-            domain=request.domain
+            domain=request.domain,
+            specialization=request.specialization,
+            complexity=request.complexity
         )
         
         # Return in format expected by frontend
