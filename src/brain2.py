@@ -25,6 +25,37 @@ class ThinkingProcess:
         self.expert_crew = None
         self.collaboration_crew = None
 
+    def _get_complexity_instructions(self, complexity: int) -> str:
+        """Get specific instructions based on complexity level."""
+        if complexity <= 2:
+            return (
+                "Provide an extremely concise response focused only on the core point. "
+                "Use no more than 2-3 short sentences. "
+                "Skip all context and supporting details unless absolutely crucial."
+            )
+        elif complexity <= 4:
+            return (
+                "Give a brief, focused response with just the key points. "
+                "Limit to 3-4 sentences. "
+                "Include only the most essential supporting details."
+            )
+        elif complexity <= 6:
+            return (
+                "Provide a balanced analysis with main insights and key supporting details. "
+                "Aim for moderate length with clear structure."
+            )
+        elif complexity <= 8:
+            return (
+                "Deliver a comprehensive analysis with detailed explanations. "
+                "Include broader context and multiple perspectives."
+            )
+        else:
+            return (
+                "Present an in-depth, exhaustive analysis. "
+                "Include detailed explanations, nuanced considerations, broader implications, "
+                "and thorough exploration of edge cases and alternative viewpoints."
+            )
+
     def _create_thinking_agents(self) -> List[Agent]:
         perception_agent = Agent(
             role="Core Pattern Analyzer",
@@ -75,21 +106,15 @@ class ThinkingProcess:
         return [expert1, expert2]
 
     def _create_director_agent(self, complexity: int = 5) -> Agent:
-        # Adjust director's approach based on complexity level
-        complexity_guidance = (
-            "Focus on providing concise, straightforward insights" if complexity < 4
-            else "Provide balanced, moderately detailed analysis" if complexity < 7
-            else "Deliver comprehensive, in-depth analysis with nuanced considerations"
-        )
+        complexity_guidance = self._get_complexity_instructions(complexity)
         
         return Agent(
             role="Strategic Director",
-            goal=f"Synthesize analyses into {complexity_guidance}",
+            goal=f"Synthesize analyses according to complexity level {complexity}/10: {complexity_guidance}",
             backstory="You function like the brain's executive regions, integrating diverse \
             analyses into coherent understanding. Your role is to synthesize expert insights \
-            into clear, actionable conclusions while maintaining awareness of broader implications, \
-            similar to how the prefrontal cortex coordinates and integrates information for \
-            decision-making.",
+            into conclusions at the appropriate complexity level while maintaining accuracy. \
+            Follow the complexity guidance strictly.",
             verbose=self.verbose
         )
 
@@ -169,22 +194,18 @@ class ThinkingProcess:
         director = self._create_director_agent(complexity)
         experts = self._create_expert_agents(specialization)
         
-        complexity_guidance = (
-            "Provide a concise summary with key points" if complexity < 4
-            else "Deliver a balanced analysis with main insights and supporting details" if complexity < 7
-            else "Present a comprehensive analysis with detailed explanations and nuanced considerations"
-        )
+        complexity_guidance = self._get_complexity_instructions(complexity)
         
         tasks = [
             Task(
                 description=(
                     f"For the question '{{input}}', evaluate and integrate all expert analyses. "
-                    f"{complexity_guidance} while maintaining awareness of broader implications."
+                    f"Your response MUST follow this complexity guidance: {complexity_guidance} "
+                    f"This is complexity level {complexity}/10, so strictly maintain that level of detail."
                 ),
                 agent=director,
                 expected_output=(
-                    "Synthesized insights at appropriate complexity level with clear recommendations "
-                    "and consideration of broader context"
+                    f"Response at complexity level {complexity}/10 with appropriate detail level and format"
                 )
             )
         ]
@@ -240,11 +261,14 @@ class ThinkingProcess:
             if self.verbose:
                 print("\n🔍 Expert analysis complete, synthesizing final results")
             
-            # Final synthesis
+            # Final synthesis with complexity guidance
+            complexity_guidance = self._get_complexity_instructions(complexity)
             final_result = self.collaboration_crew.kickoff(
                 inputs={
                     'input': input_data,
-                    'expert_analysis': expert_result
+                    'expert_analysis': expert_result,
+                    'complexity_guidance': complexity_guidance,
+                    'complexity_level': complexity
                 }
             )
             
@@ -257,27 +281,3 @@ class ThinkingProcess:
             error_msg = f"Processing error: {str(e)}"
             logger.error(error_msg)
             return error_msg
-
-def main():
-    # Test cases with domain contexts
-    test_cases = [
-        ("What are the implications of quantum computing on current cryptography systems?", "cryptography", "post-quantum cryptography", 8),
-        ("How can we optimize supply chain resilience while maintaining cost efficiency?", "supply_chain", "logistics", 5),
-        ("What are the ethical considerations in developing autonomous AI systems?", "ai_ethics", "machine learning ethics", 7)
-    ]
-
-    process = ThinkingProcess(verbose=True)
-    
-    for question, domain, specialization, complexity in test_cases:
-        print("\n" + "="*50)
-        print(f"Processing Question:\n{question}")
-        print(f"Domain: {domain}")
-        print(f"Specialization: {specialization}")
-        print(f"Complexity Level: {complexity}")
-        print("="*50)
-        
-        result = process.process(question, domain, specialization, complexity)
-        print(f"\nFinal Result:\n{result}")
-
-if __name__ == "__main__":
-    main()
