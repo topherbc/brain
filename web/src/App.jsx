@@ -5,10 +5,13 @@ const App = () => {
   const [domain, setDomain] = useState('general');
   const [response, setResponse] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
+    
     try {
       const res = await fetch('http://localhost:8000/process', {
         method: 'POST',
@@ -17,11 +20,21 @@ const App = () => {
         },
         body: JSON.stringify({ text: input, domain }),
       });
+      
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      
       const data = await res.json();
       setResponse(data.response);
     } catch (error) {
       console.error('Error:', error);
-      setResponse('An error occurred while processing your request.');
+      if (error.message === 'Failed to fetch') {
+        setError('Unable to connect to the API server. Please make sure the backend is running at http://localhost:8000');
+      } else {
+        setError(`An error occurred: ${error.message}`);
+      }
+      setResponse('');
     } finally {
       setIsLoading(false);
     }
@@ -64,11 +77,25 @@ const App = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
           >
-            {isLoading ? 'Processing...' : 'Process Text'}
+            {isLoading ? (
+              <span className="flex items-center justify-center">
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Processing...
+              </span>
+            ) : 'Process Text'}
           </button>
         </form>
+
+        {error && (
+          <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-600 text-sm">{error}</p>
+          </div>
+        )}
 
         {response && (
           <div className="mt-6 pt-6 border-t">
