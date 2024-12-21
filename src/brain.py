@@ -264,41 +264,15 @@ class CognitiveCrew:
             return error_msg
 
 def main():
-    # Define test programming problems
+    # Define test problems
     test_problems = [
-        # 1. Simple arithmetic calculator
-        ("""
-        Write a function that takes two numbers and an operator (+, -, *, /) 
-        and returns the result of the operation.
-
-        Example:
-        calculate(4, 2, '+') should return 6
-        calculate(4, 2, '-') should return 2
-        calculate(4, 2, '*') should return 8
-        calculate(4, 2, '/') should return 2
-        """, "programming"),
-
-        # 2. FizzBuzz implementation
-        ("""
-        Write a function that takes a number n and prints:
-        - 'Fizz' if the number is divisible by 3
-        - 'Buzz' if the number is divisible by 5
-        - 'FizzBuzz' if the number is divisible by both 3 and 5
-        - The number itself if none of the above conditions are true
-
-        Example:
-        fizzbuzz(15) should print numbers from 1 to 15 with appropriate substitutions
-        """, "programming"),
-
-        # 3. Array manipulation
-        ("""
-        Write a function that finds the second largest number in an array.
-        If there is no second largest number, return the largest number.
-
-        Example:
-        find_second_largest([1, 3, 4, 5, 0, 2]) should return 4
-        find_second_largest([1, 1, 1]) should return 1
-        """, "programming")
+        # Glass research question
+        ("When were open stem coupe glasses made?", "glassware_history"),
+        
+        # Additional glass-related questions could be added here
+        ("What materials were traditionally used in open stem coupe glass production?", "glassware_materials"),
+        
+        ("How can you identify authentic open stem coupe glasses from reproductions?", "glassware_authentication")
     ]
 
     # Initialize Cognitive Crew with verbose output
@@ -307,7 +281,7 @@ def main():
     # Process each problem
     for problem, domain in test_problems:
         print("\n" + "="*50)
-        print(f"Processing Problem:\n{problem}")
+        print(f"Processing Question:\n{problem}")
         print("="*50)
         
         result = cognitive_crew.process_input(problem, domain)
