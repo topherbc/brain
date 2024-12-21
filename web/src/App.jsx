@@ -1,118 +1,104 @@
 import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from './components/ui/card';
-import { Button } from './components/ui/button';
-import { Input } from './components/ui/input';
-import { Textarea } from './components/ui/textarea';
-import { Alert, AlertDescription } from './components/ui/alert';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Loader2 } from "lucide-react";
 
 const App = () => {
   const [input, setInput] = useState('');
-  const [domain, setDomain] = useState('');
-  const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [domain, setDomain] = useState('general');
+  const [response, setResponse] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
-
+    setIsLoading(true);
     try {
-      const response = await fetch('/api/process', {
+      const res = await fetch('http://localhost:8000/process', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          input,
-          domain: domain || undefined,
-        }),
+        body: JSON.stringify({ text: input, domain }),
       });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      
-      if (data.status === 'success') {
-        setResult(data.result);
-      } else {
-        setError(data.error || 'An error occurred during processing');
-      }
-    } catch (err) {
-      setError(err.message || 'Failed to connect to the server');
+      const data = await res.json();
+      setResponse(data.response);
+    } catch (error) {
+      console.error('Error:', error);
+      setResponse('An error occurred while processing your request.');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen p-4 bg-gray-100">
-      <div className="max-w-4xl mx-auto">
-        <Card className="mb-6">
+    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-3xl mx-auto">
+        <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle>Brain Project Interface</CardTitle>
+            <CardTitle className="text-2xl font-bold text-center text-gray-900">Brain Project Interface</CardTitle>
+            <CardDescription className="text-center text-gray-600">
+              Enter your text and select a domain for processing
+            </CardDescription>
           </CardHeader>
+          
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Input Text
-                </label>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
                 <Textarea
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  className="w-full h-32"
-                  placeholder="Enter your input text here..."
+                  placeholder="Enter your text here..."
+                  className="h-32 resize-none"
                   required
                 />
               </div>
               
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Domain (Optional)
-                </label>
-                <Input
-                  type="text"
-                  value={domain}
-                  onChange={(e) => setDomain(e.target.value)}
-                  className="w-full"
-                  placeholder="Specify processing domain..."
-                />
+              <div className="space-y-2">
+                <Select value={domain} onValueChange={setDomain}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a domain" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="general">General</SelectItem>
+                    <SelectItem value="scientific">Scientific</SelectItem>
+                    <SelectItem value="creative">Creative</SelectItem>
+                    <SelectItem value="analytical">Analytical</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <Button 
                 type="submit" 
-                disabled={loading}
                 className="w-full"
+                disabled={isLoading}
               >
-                {loading ? 'Processing...' : 'Process Input'}
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  'Process Text'
+                )}
               </Button>
             </form>
           </CardContent>
+
+          {response && (
+            <CardFooter className="border-t">
+              <div className="w-full space-y-2">
+                <h3 className="font-medium text-gray-900">Response:</h3>
+                <div className="bg-white p-4 rounded-md border">
+                  <pre className="whitespace-pre-wrap break-words text-sm">
+                    {response}
+                  </pre>
+                </div>
+              </div>
+            </CardFooter>
+          )}
         </Card>
-
-        {error && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
-        {result && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Results</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <pre className="bg-gray-50 p-4 rounded-lg overflow-x-auto">
-                {typeof result === 'object' 
-                  ? JSON.stringify(result, null, 2)
-                  : result}
-              </pre>
-            </CardContent>
-          </Card>
-        )}
       </div>
     </div>
   );
