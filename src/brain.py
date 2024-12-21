@@ -1,12 +1,12 @@
 import os
 import logging
-from typing import List, Optional, Any, Dict
+from typing import List, Optional, Any
 from crewai import Agent, Task, Crew, Process
 from datetime import datetime
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
-# Configure logging
+# Reduce logging noise
 logging.basicConfig(
     level=logging.WARNING,
     format='%(asctime)s - %(levelname)s - %(message)s'
@@ -16,36 +16,31 @@ logger = logging.getLogger(__name__)
 # Load environment variables
 load_dotenv()
 
-class BrainState(BaseModel):
-    """Shared state for cognitive processing"""
-    attention_focus: Dict[str, float] = Field(default_factory=dict)
-    working_memory: Dict[str, Any] = Field(default_factory=dict)
-    processing_depth: int = Field(default=1)
-    confidence_threshold: float = Field(default=0.7)
-
 class CognitiveCrew:
     def __init__(self, verbose: bool = False):
         """
-        Initialize the Cognitive Crew with configurable verbosity and shared state
+        Initialize the Cognitive Crew with configurable verbosity
         
-        Args:
-            verbose: Enables detailed logging and output
+        :param verbose: Enables detailed logging and output
         """
         self.verbose = verbose
-        self.state = BrainState()
+        
+        # Initialize crew
         self.crew_instance = self._create_crew()
 
     def _create_sensory_agent(self) -> Agent:
         """
-        Enhanced Sensory Processing Agent with attention mechanism
+        Sensory Processing Agent
+        Raw input perception and initial feature extraction
         """
         return Agent(
             role="Sensory Perception Specialist",
-            goal="Extract and filter key elements based on attention focus",
+            goal="Precisely extract key elements, keywords, and semantic signals from the input",
             backstory=(
-                "You are the initial cognitive filter. Extract features with emphasis on "
-                "areas highlighted by attention focus. Consider feedback from higher "
-                "levels to modulate processing depth and feature selection."
+                "You are the initial point of cognitive processing. Your job is to break down "
+                "the input into its most fundamental components. Extract exact keywords, "
+                "identify the primary intent, and capture the core semantic signals with "
+                "laser-sharp precision. Do not summarize or interpret - just extract."
             ),
             tools=[],
             allow_delegation=False,
@@ -54,16 +49,17 @@ class CognitiveCrew:
 
     def _create_pattern_recognition_agent(self) -> Agent:
         """
-        Enhanced Pattern Recognition Agent with hierarchical processing
+        Pattern Recognition Agent
+        Identifies underlying structures and connections
         """
         return Agent(
             role="Cognitive Pattern Analyst",
-            goal="Identify patterns with attention to highlighted features",
+            goal="Identify and map underlying cognitive patterns and structural relationships",
             backstory=(
-                "You analyze patterns with special focus on attended features. "
-                "Build hierarchical representations and maintain awareness of "
-                "both local and global patterns. Consider feedback from memory "
-                "and analytical processes."
+                "You specialize in uncovering hidden connections and structural patterns. "
+                "Analyze the extracted features to reveal underlying cognitive frameworks. "
+                "Create a clear, logical mapping of how different elements interrelate. "
+                "Your output should be a structured breakdown of conceptual connections."
             ),
             tools=[],
             allow_delegation=False,
@@ -72,16 +68,74 @@ class CognitiveCrew:
 
     def _create_memory_agent(self) -> Agent:
         """
-        Enhanced Memory Agent with working memory constraints
+        Working Memory Agent
+        Contextualizes and integrates information
         """
         return Agent(
-            role="Memory Integration Specialist",
-            goal="Maintain and update working memory while considering capacity limits",
+            role="Contextual Memory Integrator",
+            goal="Synthesize and contextualize extracted information into a comprehensive framework",
             backstory=(
-                "You manage working memory with awareness of capacity limits. "
-                "Prioritize information based on attention focus and relevance. "
-                "Integrate new information with existing context within capacity "
-                "constraints."
+                "You are responsible for creating a holistic context for the information. "
+                "Take the pattern-identified features and weave them into a coherent narrative. "
+                "Provide a comprehensive context that explains how different elements interact "
+                "and contribute to the overall understanding of the input."
+            ),
+            tools=[],
+            allow_delegation=False,
+            verbose=self.verbose
+        )
+
+    def _create_risk_assessment_agent(self) -> Agent:
+        """
+        Risk and Uncertainty Analysis Agent
+        Evaluates potential implications and limitations
+        """
+        return Agent(
+            role="Cognitive Risk Assessor",
+            goal="Critically evaluate potential implications, limitations, and areas of uncertainty",
+            backstory=(
+                "Your role is to provide a critical, analytical perspective on the integrated "
+                "information. Identify potential blind spots, assess risks, and highlight "
+                "areas of uncertainty. Your analysis should reveal potential limitations "
+                "or challenges in the current understanding."
+            ),
+            tools=[],
+            allow_delegation=False,
+            verbose=self.verbose
+        )
+
+    def _create_analytical_agent(self) -> Agent:
+        """
+        Analytical Reasoning Agent
+        Generates deep insights and precise reasoning
+        """
+        return Agent(
+            role="Advanced Analytical Reasoner",
+            goal="Generate sophisticated insights and provide precise, actionable reasoning",
+            backstory=(
+                "You are the highest level of cognitive processing. Transform the integrated "
+                "and risk-assessed information into sophisticated, nuanced insights. "
+                "Develop clear, actionable recommendations that address the core intent "
+                "of the original input with depth and precision."
+            ),
+            tools=[],
+            allow_delegation=False,
+            verbose=self.verbose
+        )
+
+    def _create_specialist_agent(self) -> Agent:
+        """
+        Domain-Specific Specialist Agent
+        Provides expert-level insights based on input domain
+        """
+        return Agent(
+            role="Domain-Specific Knowledge Expert",
+            goal="Provide expert-level, domain-specific insights that add depth to the analysis",
+            backstory=(
+                "You are a specialized expert tailored to the specific domain of the input. "
+                "Apply deep, domain-specific knowledge to provide nuanced insights that "
+                "go beyond general reasoning. Offer practical, expert-level recommendations "
+                "that leverage specialized understanding."
             ),
             tools=[],
             allow_delegation=False,
@@ -90,15 +144,16 @@ class CognitiveCrew:
 
     def _create_executive_agent(self) -> Agent:
         """
-        Enhanced Executive Agent with feedback control
+        Executive Function Agent
+        Synthesizes final output and ensures coherence
         """
         return Agent(
-            role="Executive Controller",
-            goal="Coordinate processing and provide top-down feedback",
+            role="Cognitive Executive Synthesizer",
+            goal="Synthesize the final output into a clear, coherent, and actionable response",
             backstory=(
-                "You coordinate cognitive processes and provide feedback to earlier "
-                "stages. Adjust attention focus, processing depth, and cognitive "
-                "resources based on task demands and intermediate results."
+                "Your ultimate function is to take all previous insights and synthesize them "
+                "into a single, coherent, and directly actionable response. Ensure the final "
+                "output is crisp, clear, and provides immediate value to the user."
             ),
             tools=[],
             allow_delegation=False,
@@ -107,45 +162,55 @@ class CognitiveCrew:
 
     def _create_crew(self) -> Crew:
         """
-        Create cognitive crew with enhanced interaction and feedback loops
+        Create the cognitive processing crew with neural-like sequential processing
         """
-        # Create agents with shared state access
+        # Create agents
         agents = [
             self._create_sensory_agent(),
             self._create_pattern_recognition_agent(),
             self._create_memory_agent(),
+            self._create_risk_assessment_agent(),
+            self._create_analytical_agent(),
+            self._create_specialist_agent(),
             self._create_executive_agent()
         ]
 
-        # Define tasks with feedback loops
+        # Define tasks with explicit instructions
         tasks = [
             Task(
-                description=(
-                    "Process input '{input}' with current attention focus: "
-                    "{attention_focus}. Extract relevant features."
-                ),
-                agent=agents[0]
+                description="Analyze this input: '{input}' - Extract precise keywords, identify primary intent, and capture core semantic signals.",
+                agent=agents[0],
+                expected_output="A list of exact keywords, core intent, and primary semantic signals from the question"
             ),
             Task(
-                description=(
-                    "Identify patterns in extracted features considering working "
-                    "memory state: {working_memory}."
-                ),
-                agent=agents[1]
+                description="Based on the analysis of '{input}', reveal underlying cognitive patterns and create a structured mapping of connections.",
+                agent=agents[1],
+                expected_output="A clear, logical mapping of conceptual relationships and patterns"
             ),
             Task(
-                description=(
-                    "Update working memory with new patterns while maintaining "
-                    "capacity limits. Current state: {working_memory}."
-                ),
-                agent=agents[2]
+                description="For '{input}', synthesize the pattern-identified features into a comprehensive context and explain their interactions.",
+                agent=agents[2],
+                expected_output="A holistic contextual framework explaining interconnections"
             ),
             Task(
-                description=(
-                    "Review processing results and adjust cognitive parameters. "
-                    "Provide feedback for next iteration if needed."
-                ),
-                agent=agents[3]
+                description="Evaluate implications and limitations in understanding '{input}'.",
+                agent=agents[3],
+                expected_output="A detailed analysis of potential risks and limitations"
+            ),
+            Task(
+                description="Provide sophisticated insights and recommendations for '{input}'.",
+                agent=agents[4],
+                expected_output="Sophisticated insights with precise, actionable recommendations"
+            ),
+            Task(
+                description="Apply domain expertise to analyze '{input}'.",
+                agent=agents[5],
+                expected_output="Expert-level insights specific to the input's domain"
+            ),
+            Task(
+                description="Synthesize all insights about '{input}' into a final response.",
+                agent=agents[6],
+                expected_output="A crisp, clear, and immediately actionable final response"
             )
         ]
 
@@ -155,100 +220,71 @@ class CognitiveCrew:
             process=Process.sequential,
             verbose=self.verbose,
             model_kwargs={
-                "temperature": 0.4,
-                "max_tokens": 2000,
-                "top_p": 0.8
+                "temperature": 0.4,  # Balanced between creativity and precision
+                "max_tokens": 2000,  # Increased to allow more comprehensive processing
+                "top_p": 0.8  # Allows for more diverse but still focused responses
             }
         )
 
-    def _update_state(self, agent_outputs: Dict[str, str]):
+    def process_input(self, input_data: Any, domain: Optional[str] = None) -> str:
         """
-        Update shared brain state based on agent outputs
+        Process input through the advanced cognitive pipeline
         
-        Args:
-            agent_outputs: Dictionary of agent outputs
-        """
-        # Update attention focus based on executive feedback
-        if "executive" in agent_outputs:
-            exec_output = agent_outputs["executive"]
-            # Parse executive output for attention directives
-            # (Implementation would depend on output format)
-            pass
-
-        # Update working memory with new information
-        if "memory" in agent_outputs:
-            mem_output = agent_outputs["memory"]
-            # Update working memory while respecting capacity
-            # (Implementation would depend on memory format)
-            pass
-
-    def process_input(self, input_data: Any) -> str:
-        """
-        Process input through cognitive pipeline with feedback loops
-        
-        Args:
-            input_data: Input to be processed
+        :param input_data: Input to be processed
+        :param domain: Optional domain-specific context
         """
         try:
             if input_data is None:
                 raise ValueError("Input cannot be None")
-
+            
             if self.verbose:
-                print(f"\n🧠 Processing Input: '{input_data}'")
-
-            # Initialize processing variables
-            iteration = 0
-            max_iterations = 3  # Prevent infinite loops
-            processing_complete = False
-            final_result = None
-
-            # Processing loop with feedback
-            while not processing_complete and iteration < max_iterations:
-                # Update task inputs with current state
-                task_inputs = {
-                    'input': input_data,
-                    'attention_focus': self.state.attention_focus,
-                    'working_memory': self.state.working_memory
-                }
-
-                # Process through crew
-                result = self.crew_instance.kickoff(inputs=task_inputs)
-
-                # Update shared state based on results
-                self._update_state({'executive': str(result)})
-
-                # Check if processing is complete (could be based on confidence or other metrics)
-                processing_complete = self.state.confidence_threshold >= 0.9
-                final_result = result
-                iteration += 1
-
+                print(f"\n🧠 Advanced Cognitive Processing Input: '{input_data}'")
+            
+            # Customize specialist agent if domain is provided
+            if domain:
+                self.crew_instance.agents[-2].backstory = (
+                    f"You are a specialized expert in the {domain} domain. "
+                    "Provide nuanced, expert-level insights specific to this field, "
+                    "drawing on deep domain knowledge to offer precise and relevant interpretations."
+                )
+            
+            # Process input through the crew
+            result = self.crew_instance.kickoff(inputs={'input': input_data})
+            
             if self.verbose:
-                print(f"\n🔄 Required {iteration} iterations")
-                print("\n🔬 Final Output:")
-                print(final_result)
-
-            return str(final_result)
-
+                print("\n🔬 Final Cognitive Output:")
+                print(result)
+            
+            return str(result)
+        
         except Exception as e:
-            error_msg = f"Processing error: {e}"
+            error_msg = f"Advanced cognitive processing error: {e}"
+            print(error_msg)
             logger.error(error_msg)
             return error_msg
 
 def main():
-    # Test cases
-    test_inputs = [
-        "Analyze the environmental impact of electric vehicles",
-        "Explain how neural networks learn from data",
-        "Describe the process of photosynthesis"
+    # Define test problems
+    test_problems = [
+        # Glass research question
+        ("When were open stem coupe glasses made?", "glassware_history"),
+        
+        # Additional glass-related questions could be added here
+        ("What materials were traditionally used in open stem coupe glass production?", "glassware_materials"),
+        
+        ("How can you identify authentic open stem coupe glasses from reproductions?", "glassware_authentication")
     ]
 
-    # Process with feedback loops
-    crew = CognitiveCrew(verbose=True)
-    for input_data in test_inputs:
+    # Initialize Cognitive Crew with verbose output
+    cognitive_crew = CognitiveCrew(verbose=True)
+    
+    # Process each problem
+    for problem, domain in test_problems:
         print("\n" + "="*50)
-        print(f"Processing: {input_data}")
+        print(f"Processing Question:\n{problem}")
         print("="*50)
-        result = crew.process_input(input_data)
+        
+        result = cognitive_crew.process_input(problem, domain)
 
 if __name__ == "__main__":
     main()
