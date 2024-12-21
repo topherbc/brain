@@ -1,53 +1,114 @@
+import re
+from typing import Dict, Any
 from crewai import Agent
 from langchain_openai import ChatOpenAI
 
 class DomainDirector:
     @staticmethod
-    def create_specialized_director(domain):
+    def detect_domain(query: str) -> str:
         """
-        Create a specialized director agent based on the input domain.
+        Intelligently detect the domain of a given query
         
         Args:
-            domain (str): The specific domain of inquiry
+            query (str): The input query to analyze
         
         Returns:
-            Agent: A specialized CrewAI agent for the given domain
+            str: Detected domain
         """
-        domain_specializations = {
+        # Comprehensive domain detection logic
+        domain_patterns = {
+            'science': [
+                r'\bphysics\b', r'\bchemistry\b', r'\bbiology\b', 
+                r'\bscientific\b', r'\bexperiment\b', r'\bresearch\b',
+                r'\bnatural phenomena\b'
+            ],
+            'technology': [
+                r'\btech\b', r'\bcomputer\b', r'\balgorithm\b', 
+                r'\bprogramming\b', r'\binnovation\b'
+            ],
+            'history': [
+                r'\bhistorical\b', r'\bpast\b', r'\bevent\b', 
+                r'\bcivilization\b', r'\bculture\b'
+            ],
+            'geography': [
+                r'\bplanet\b', r'\bworld\b', r'\bcontinent\b', 
+                r'\blandscape\b', r'\bmountain\b', r'\bocean\b'
+            ]
+        }
+        
+        # Check for domain-specific keywords
+        for domain, patterns in domain_patterns.items():
+            if any(re.search(pattern, query, re.IGNORECASE) for pattern in patterns):
+                return domain
+        
+        return 'general'
+
+    @staticmethod
+    def _create_director_agent(query: str, domain: str) -> Agent:
+        """
+        Create a specialized director agent based on query and domain
+        
+        Args:
+            query (str): The original query
+            domain (str): The detected or specified domain
+        
+        Returns:
+            Agent: A CrewAI agent specialized for the given domain and query
+        """
+        # Domain-specific role configurations
+        domain_configs = {
             'science': {
-                'role': 'Scientific Domain Expert and Research Coordinator',
-                'goal': 'Provide comprehensive and accurate scientific explanations by coordinating research and analysis',
-                'backstory': 'A seasoned research director with extensive experience in translating complex scientific concepts into clear, understandable narratives. Skilled at breaking down intricate scientific phenomena and guiding interdisciplinary research teams.'
+                'role': 'Scientific Inquiry Specialist',
+                'goal': f'Provide precise scientific explanation for: {query}',
+                'backstory': 'An expert researcher dedicated to breaking down complex scientific concepts with clarity and depth.'
             },
             'technology': {
-                'role': 'Technology Innovation and Explanation Strategist',
-                'goal': 'Demystify technological concepts and provide in-depth, contextual understanding',
-                'backstory': 'A veteran technology consultant who has worked across multiple tech domains, specializing in translating complex technological innovations into accessible insights for diverse audiences.'
+                'role': 'Technical Explanation Architect',
+                'goal': f'Demystify technological aspects of: {query}',
+                'backstory': 'A seasoned technology translator who converts complex tech concepts into understandable insights.'
             },
             'history': {
-                'role': 'Historical Context and Narrative Curator',
-                'goal': 'Provide nuanced, well-researched historical explanations with rich contextual understanding',
-                'backstory': 'A distinguished historian with expertise in connecting historical events, understanding cultural contexts, and presenting comprehensive historical narratives.'
+                'role': 'Historical Context Curator',
+                'goal': f'Provide comprehensive historical context for: {query}',
+                'backstory': 'A meticulous historian who weaves intricate narratives and provides deep contextual understanding.'
             },
-            'default': {
-                'role': 'Interdisciplinary Knowledge Director',
-                'goal': 'Provide comprehensive and accurate explanations across various domains',
-                'backstory': 'A versatile knowledge coordinator with broad expertise, capable of navigating complex information landscapes and synthesizing insights from multiple perspectives.'
+            'general': {
+                'role': 'Interdisciplinary Knowledge Synthesizer',
+                'goal': f'Generate a comprehensive explanation for: {query}',
+                'backstory': 'A versatile knowledge expert capable of drawing insights from multiple domains.'
             }
         }
-
-        # Select domain-specific or default configuration
-        domain_config = domain_specializations.get(domain.lower(), domain_specializations['default'])
-
+        
+        # Select configuration, defaulting to general
+        config = domain_configs.get(domain, domain_configs['general'])
+        
         return Agent(
-            role=domain_config['role'],
-            goal=domain_config['goal'],
-            backstory=domain_config['backstory'],
+            role=config['role'],
+            goal=config['goal'],
+            backstory=config['backstory'],
             verbose=True,
             allow_delegation=True,
             max_iter=5,
             llm=ChatOpenAI(model="gpt-4-turbo")
         )
 
+    @staticmethod
+    def create_agent(query: str, specified_domain: str = None) -> Agent:
+        """
+        Main method to create a domain-specialized agent
+        
+        Args:
+            query (str): The input query
+            specified_domain (str, optional): Manually specified domain
+        
+        Returns:
+            Agent: A specialized CrewAI agent
+        """
+        # Use specified domain or detect domain
+        domain = specified_domain or DomainDirector.detect_domain(query)
+        
+        # Create and return specialized agent
+        return DomainDirector._create_director_agent(query, domain)
+
 # Example usage
-# director = DomainDirector.create_specialized_director('science')
+# agent = DomainDirector.create_agent("Why is the sky blue?")
