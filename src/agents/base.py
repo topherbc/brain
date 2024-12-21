@@ -1,39 +1,26 @@
-from typing import Dict, Any, Optional
-from abc import ABC, abstractmethod
-from crewai import Agent
+from typing import Optional, Any, List, Dict
+from pydantic import BaseModel, Field
+from crewai import Agent, Task, Process
 
-class BaseAgent(ABC):
-    """Base class for all cognitive agents."""
+class BrainAgent(Agent):
+    """Base class for all cognitive agents in the brain architecture."""
+    name: str = Field(description="Name of the agent")
+    role: str = Field(description="Role of the agent in the cognitive architecture")
+    goal: str = Field(description="Primary goal/objective of the agent")
+    backstory: Optional[str] = Field(default=None, description="Agent's context and background")
+    memory_span: Optional[int] = Field(default=5, description="Number of previous states to remember")
+    allow_delegation: bool = Field(default=True, description="Whether agent can delegate tasks")
     
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
-        """Initialize the base agent.
+    class Config:
+        arbitrary_types_allowed = True
         
-        Args:
-            config: Optional configuration dictionary
-        """
-        self.config = config or {}
-        self._crew_agent = None
-        self._initialize_agent()
-    
-    @abstractmethod
-    def _get_agent_config(self) -> Dict[str, Any]:
-        """Get agent-specific configuration.
+    async def process(self, input_data: Any) -> Dict[str, Any]:
+        """Process input data according to agent's role."""
+        raise NotImplementedError
         
-        Returns:
-            Dictionary containing agent configuration
-        """
+    async def delegate(self, task: Task) -> Any:
+        """Delegate a task to another agent if allowed."""
+        if not self.allow_delegation:
+            raise ValueError(f"Agent {self.name} does not allow delegation")
+        # Implementation for delegation
         pass
-    
-    def _initialize_agent(self):
-        """Initialize the CrewAI agent with configuration."""
-        config = self._get_agent_config()
-        self._crew_agent = Agent(**config)
-    
-    @property
-    def crew_agent(self) -> Agent:
-        """Get the underlying CrewAI agent.
-        
-        Returns:
-            CrewAI Agent instance
-        """
-        return self._crew_agent
