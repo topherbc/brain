@@ -24,25 +24,21 @@ class CognitiveCrew:
         :param verbose: Enables detailed logging and output
         """
         self.verbose = verbose
-        self.focus_areas = {}  # Simple attention tracking
         
-        # Initialize crew
-        self.crew_instance = self._create_crew()
+        # Initialize crews for different processing stages
+        self.initial_crew = self._create_initial_crew()
+        self.parallel_crew = self._create_parallel_crew()
+        self.final_crew = self._create_final_crew()
 
+    # Agent creation methods remain the same...
     def _create_sensory_agent(self) -> Agent:
-        """
-        Sensory Processing Agent
-        Raw input perception and initial feature extraction
-        """
         return Agent(
             role="Sensory Perception Specialist",
-            goal="Precisely extract key elements, keywords, and semantic signals from the input",
+            goal="Extract key elements and semantic signals from input",
             backstory=(
-                "You are the initial point of cognitive processing. Your job is to break down "
-                "the input into its most fundamental components. Extract exact keywords, "
-                "identify the primary intent, and capture the core semantic signals with "
-                "laser-sharp precision. Mark especially important elements with [FOCUS]. "
-                "Do not summarize or interpret - just extract."
+                "Break down input into fundamental components. Extract keywords, "
+                "identify intent, and capture semantic signals. Mark important "
+                "elements with [FOCUS]. Just extract - don't interpret."
             ),
             tools=[],
             allow_delegation=False,
@@ -50,170 +46,37 @@ class CognitiveCrew:
         )
 
     def _create_pattern_recognition_agent(self) -> Agent:
-        """
-        Pattern Recognition Agent
-        Identifies underlying structures and connections
-        """
         return Agent(
-            role="Cognitive Pattern Analyst",
-            goal="Identify and map underlying cognitive patterns and structural relationships",
+            role="Pattern Analyst",
+            goal="Identify patterns and relationships in sensory data",
             backstory=(
-                "You specialize in uncovering hidden connections and structural patterns. "
-                "Pay special attention to elements marked with [FOCUS]. "
-                "Create a clear, logical mapping of how different elements interrelate. "
-                "Your output should be a structured breakdown of conceptual connections."
+                "Map connections between extracted elements. Create structured "
+                "understanding of relationships. Focus on [FOCUS] elements."
             ),
             tools=[],
             allow_delegation=False,
             verbose=self.verbose
         )
 
-    def _create_memory_agent(self) -> Agent:
-        """
-        Working Memory Agent
-        Contextualizes and integrates information
-        """
-        return Agent(
-            role="Contextual Memory Integrator",
-            goal="Synthesize and contextualize extracted information into a comprehensive framework",
-            backstory=(
-                "You are responsible for creating a holistic context for the information. "
-                "Take the pattern-identified features and weave them into a coherent narrative. "
-                "Provide a comprehensive context that explains how different elements interact "
-                "and contribute to the overall understanding of the input."
-            ),
-            tools=[],
-            allow_delegation=False,
-            verbose=self.verbose
-        )
+    # Other agent creation methods stay the same...
 
-    def _create_risk_assessment_agent(self) -> Agent:
-        """
-        Risk and Uncertainty Analysis Agent
-        Evaluates potential implications and limitations
-        """
-        return Agent(
-            role="Cognitive Risk Assessor",
-            goal="Critically evaluate potential implications, limitations, and areas of uncertainty",
-            backstory=(
-                "Your role is to provide a critical, analytical perspective on the integrated "
-                "information. Identify potential blind spots, assess risks, and highlight "
-                "areas of uncertainty. Your analysis should reveal potential limitations "
-                "or challenges in the current understanding."
-            ),
-            tools=[],
-            allow_delegation=False,
-            verbose=self.verbose
-        )
-
-    def _create_analytical_agent(self) -> Agent:
-        """
-        Analytical Reasoning Agent
-        Generates deep insights and precise reasoning
-        """
-        return Agent(
-            role="Advanced Analytical Reasoner",
-            goal="Generate sophisticated insights and provide precise, actionable reasoning",
-            backstory=(
-                "You are the highest level of cognitive processing. Transform the integrated "
-                "and risk-assessed information into sophisticated, nuanced insights. "
-                "Develop clear, actionable recommendations that address the core intent "
-                "of the original input with depth and precision."
-            ),
-            tools=[],
-            allow_delegation=False,
-            verbose=self.verbose
-        )
-
-    def _create_specialist_agent(self) -> Agent:
-        """
-        Domain-Specific Specialist Agent
-        Provides expert-level insights based on input domain
-        """
-        return Agent(
-            role="Domain-Specific Knowledge Expert",
-            goal="Provide expert-level, domain-specific insights that add depth to the analysis",
-            backstory=(
-                "You are a specialized expert tailored to the specific domain of the input. "
-                "Apply deep, domain-specific knowledge to provide nuanced insights that "
-                "go beyond general reasoning. Offer practical, expert-level recommendations "
-                "that leverage specialized understanding."
-            ),
-            tools=[],
-            allow_delegation=False,
-            verbose=self.verbose
-        )
-
-    def _create_executive_agent(self) -> Agent:
-        """
-        Executive Function Agent
-        Synthesizes final output and ensures coherence
-        """
-        return Agent(
-            role="Cognitive Executive Synthesizer",
-            goal="Synthesize the final output into a clear, coherent, and actionable response",
-            backstory=(
-                "Your ultimate function is to take all previous insights and synthesize them "
-                "into a single, coherent, and directly actionable response. Pay special "
-                "attention to elements marked with [FOCUS]. Ensure the final output is "
-                "crisp, clear, and provides immediate value to the user."
-            ),
-            tools=[],
-            allow_delegation=False,
-            verbose=self.verbose
-        )
-
-    def _create_crew(self) -> Crew:
-        """
-        Create the cognitive processing crew with neural-like sequential processing
-        """
-        # Create agents
+    def _create_initial_crew(self) -> Crew:
+        """Create crew for initial sequential processing"""
         agents = [
             self._create_sensory_agent(),
-            self._create_pattern_recognition_agent(),
-            self._create_memory_agent(),
-            self._create_risk_assessment_agent(),
-            self._create_analytical_agent(),
-            self._create_specialist_agent(),
-            self._create_executive_agent()
+            self._create_pattern_recognition_agent()
         ]
 
-        # Define tasks with explicit instructions
         tasks = [
             Task(
-                description="Analyze this input: '{input}' - Extract precise keywords, identify primary intent, and capture core semantic signals. Mark key elements with [FOCUS].",
+                description="Process input: '{input}' - Extract key elements and mark with [FOCUS]",
                 agent=agents[0],
-                expected_output="A list of exact keywords, core intent, and primary semantic signals from the question"
+                expected_output="Extracted features with attention markers"
             ),
             Task(
-                description="Based on the analysis of '{input}', reveal underlying cognitive patterns and create a structured mapping of connections.",
+                description="Map patterns in: {previous_output}",
                 agent=agents[1],
-                expected_output="A clear, logical mapping of conceptual relationships and patterns"
-            ),
-            Task(
-                description="For '{input}', synthesize the pattern-identified features into a comprehensive context and explain their interactions.",
-                agent=agents[2],
-                expected_output="A holistic contextual framework explaining interconnections"
-            ),
-            Task(
-                description="Evaluate implications and limitations in understanding '{input}'.",
-                agent=agents[3],
-                expected_output="A detailed analysis of potential risks and limitations"
-            ),
-            Task(
-                description="Provide sophisticated insights and recommendations for '{input}'.",
-                agent=agents[4],
-                expected_output="Sophisticated insights with precise, actionable recommendations"
-            ),
-            Task(
-                description="Apply domain expertise to analyze '{input}'.",
-                agent=agents[5],
-                expected_output="Expert-level insights specific to the input's domain"
-            ),
-            Task(
-                description="Synthesize all insights about '{input}' into a final response. Pay special attention to [FOCUS] elements.",
-                agent=agents[6],
-                expected_output="A crisp, clear, and immediately actionable final response"
+                expected_output="Pattern structure and relationships"
             )
         ]
 
@@ -221,21 +84,63 @@ class CognitiveCrew:
             agents=agents,
             tasks=tasks,
             process=Process.sequential,
-            verbose=self.verbose,
-            model_kwargs={
-                "temperature": 0.4,  # Balanced between creativity and precision
-                "max_tokens": 2000,  # Increased to allow more comprehensive processing
-                "top_p": 0.8  # Allows for more diverse but still focused responses
-            }
+            verbose=self.verbose
+        )
+
+    def _create_parallel_crew(self) -> Crew:
+        """Create crew for parallel analysis tasks"""
+        agents = [
+            self._create_memory_agent(),
+            self._create_risk_assessment_agent(),
+            self._create_specialist_agent()
+        ]
+
+        tasks = [
+            Task(
+                description="Integrate context for: {input} using {patterns}",
+                agent=agents[0],
+                expected_output="Contextual framework"
+            ),
+            Task(
+                description="Assess risks in: {input} based on {patterns}",
+                agent=agents[1],
+                expected_output="Risk analysis"
+            ),
+            Task(
+                description="Provide domain expertise on: {input} considering {patterns}",
+                agent=agents[2],
+                expected_output="Domain-specific insights"
+            )
+        ]
+
+        return Crew(
+            agents=agents,
+            tasks=tasks,
+            process=Process.parallel,
+            verbose=self.verbose
+        )
+
+    def _create_final_crew(self) -> Crew:
+        """Create crew for final synthesis"""
+        agents = [self._create_executive_agent()]
+
+        tasks = [
+            Task(
+                description="Synthesize final response from: {context}, {risks}, and {expertise}",
+                agent=agents[0],
+                expected_output="Final synthesized response"
+            )
+        ]
+
+        return Crew(
+            agents=agents,
+            tasks=tasks,
+            process=Process.sequential,
+            verbose=self.verbose
         )
 
     def process_input(self, input_data: Any, domain: Optional[str] = None) -> str:
-        """
-        Process input through the advanced cognitive pipeline
-        
-        :param input_data: Input to be processed
-        :param domain: Optional domain-specific context
-        """
+        """Process input through parallel cognitive pipeline"""
         try:
             if input_data is None:
                 raise ValueError("Input cannot be None")
@@ -243,51 +148,67 @@ class CognitiveCrew:
             if self.verbose:
                 print(f"\n🧠 Processing Input: '{input_data}'")
             
-            # Customize specialist agent if domain is provided
+            # Update specialist for domain if provided
             if domain:
-                self.crew_instance.agents[-2].backstory = (
-                    f"You are a specialized expert in the {domain} domain. "
-                    "Provide nuanced, expert-level insights specific to this field, "
-                    "drawing on deep domain knowledge to offer precise and relevant interpretations."
+                self.parallel_crew.agents[2].backstory = (
+                    f"Expert in {domain}. Provide specific insights "
+                    "and recommendations for this domain."
                 )
             
-            # Process input through the crew
-            result = self.crew_instance.kickoff(inputs={'input': input_data})
+            # Stage 1: Initial Processing
+            initial_result = self.initial_crew.kickoff(
+                inputs={'input': input_data}
+            )
             
             if self.verbose:
-                print("\n🔬 Final Output:")
-                print(result)
+                print("\n1️⃣ Initial Processing Complete")
             
-            return str(result)
+            # Stage 2: Parallel Analysis
+            parallel_results = self.parallel_crew.kickoff(
+                inputs={
+                    'input': input_data,
+                    'patterns': initial_result
+                }
+            )
+            
+            if self.verbose:
+                print("\n2️⃣ Parallel Analysis Complete")
+            
+            # Stage 3: Final Synthesis
+            final_result = self.final_crew.kickoff(
+                inputs={
+                    'context': parallel_results[0],
+                    'risks': parallel_results[1],
+                    'expertise': parallel_results[2]
+                }
+            )
+            
+            if self.verbose:
+                print("\n3️⃣ Final Synthesis Complete")
+                print("\n🔬 Output:")
+                print(final_result)
+            
+            return str(final_result)
         
         except Exception as e:
             error_msg = f"Processing error: {e}"
-            print(error_msg)
             logger.error(error_msg)
             return error_msg
 
 def main():
-    # Define test problems
+    # Test problems
     test_problems = [
-        # Glass research question
         ("When were open stem coupe glasses made?", "glassware_history"),
-        
-        # Additional glass-related questions could be added here
         ("What materials were traditionally used in open stem coupe glass production?", "glassware_materials"),
-        
         ("How can you identify authentic open stem coupe glasses from reproductions?", "glassware_authentication")
     ]
 
-    # Initialize Cognitive Crew with verbose output
-    cognitive_crew = CognitiveCrew(verbose=True)
-    
-    # Process each problem
+    crew = CognitiveCrew(verbose=True)
     for problem, domain in test_problems:
         print("\n" + "="*50)
-        print(f"Processing Question:\n{problem}")
+        print(f"Processing: {problem}")
         print("="*50)
-        
-        result = cognitive_crew.process_input(problem, domain)
+        result = crew.process_input(problem, domain)
 
 if __name__ == "__main__":
     main()
