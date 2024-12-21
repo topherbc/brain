@@ -21,9 +21,9 @@ class ThinkingProcess:
         self.verbose = verbose
         
         # Create individual crews
-        self.thinking_crew = self._create_thinking_crew()
-        self.expert_crew = self._create_expert_crew()
-        self.collaboration_crew = self._create_collaboration_crew()
+        self.thinking_crew = None
+        self.expert_crew = None
+        self.collaboration_crew = None
 
     def _create_thinking_agents(self) -> List[Agent]:
         perception_agent = Agent(
@@ -48,11 +48,14 @@ class ThinkingProcess:
 
         return [perception_agent, context_agent]
 
-    def _create_expert_agents(self) -> List[Agent]:
+    def _create_expert_agents(self, specialization: Optional[str] = None) -> List[Agent]:
+        # Modify agent backstories based on specialization if provided
+        specialization_context = f" with specific expertise in {specialization}" if specialization else ""
+        
         expert1 = Agent(
-            role="Primary Domain Expert",
+            role=f"Primary Domain Expert{specialization_context}",
             goal="Provide focused, domain-specific insights based on contextual patterns",
-            backstory="You represent deep specialized processing capability, similar to how \
+            backstory=f"You represent deep specialized processing capability{specialization_context}, similar to how \
             dedicated brain regions develop expertise in specific types of information processing. \
             Your analysis draws from extensive domain knowledge to evaluate patterns within their \
             specific context, highlighting critical factors and potential implications.",
@@ -60,9 +63,9 @@ class ThinkingProcess:
         )
 
         expert2 = Agent(
-            role="Secondary Domain Expert",
+            role=f"Secondary Domain Expert{specialization_context}",
             goal="Enrich primary analysis with complementary domain insights",
-            backstory="You provide essential alternative perspectives, similar to how the brain \
+            backstory=f"You provide essential alternative perspectives{specialization_context}, similar to how the brain \
             processes information through complementary pathways. Your expertise offers different \
             but related viewpoints that enrich the primary analysis, identifying additional factors \
             and alternative interpretations.",
@@ -71,10 +74,17 @@ class ThinkingProcess:
 
         return [expert1, expert2]
 
-    def _create_director_agent(self) -> Agent:
+    def _create_director_agent(self, complexity: int = 5) -> Agent:
+        # Adjust director's approach based on complexity level
+        complexity_guidance = (
+            "Focus on providing concise, straightforward insights" if complexity < 4
+            else "Provide balanced, moderately detailed analysis" if complexity < 7
+            else "Deliver comprehensive, in-depth analysis with nuanced considerations"
+        )
+        
         return Agent(
             role="Strategic Director",
-            goal="Synthesize analyses into coherent, actionable insights",
+            goal=f"Synthesize analyses into {complexity_guidance}",
             backstory="You function like the brain's executive regions, integrating diverse \
             analyses into coherent understanding. Your role is to synthesize expert insights \
             into clear, actionable conclusions while maintaining awareness of broader implications, \
@@ -119,8 +129,8 @@ class ThinkingProcess:
             verbose=self.verbose
         )
 
-    def _create_expert_crew(self) -> Crew:
-        agents = self._create_expert_agents()
+    def _create_expert_crew(self, specialization: Optional[str] = None) -> Crew:
+        agents = self._create_expert_agents(specialization)
         tasks = [
             Task(
                 description=(
@@ -155,21 +165,26 @@ class ThinkingProcess:
             verbose=self.verbose
         )
 
-    def _create_collaboration_crew(self) -> Crew:
-        director = self._create_director_agent()
-        experts = self._create_expert_agents()
+    def _create_collaboration_crew(self, specialization: Optional[str] = None, complexity: int = 5) -> Crew:
+        director = self._create_director_agent(complexity)
+        experts = self._create_expert_agents(specialization)
+        
+        complexity_guidance = (
+            "Provide a concise summary with key points" if complexity < 4
+            else "Deliver a balanced analysis with main insights and supporting details" if complexity < 7
+            else "Present a comprehensive analysis with detailed explanations and nuanced considerations"
+        )
         
         tasks = [
             Task(
                 description=(
-                    "For the question '{input}', evaluate and integrate all expert analyses. "
-                    "Synthesize the insights into clear, actionable recommendations while "
-                    "maintaining awareness of broader implications."
+                    f"For the question '{{input}}', evaluate and integrate all expert analyses. "
+                    f"{complexity_guidance} while maintaining awareness of broader implications."
                 ),
                 agent=director,
                 expected_output=(
-                    "Coherent synthesis of expert insights with clear, actionable "
-                    "recommendations and consideration of broader context"
+                    "Synthesized insights at appropriate complexity level with clear recommendations "
+                    "and consideration of broader context"
                 )
             )
         ]
@@ -181,19 +196,30 @@ class ThinkingProcess:
             verbose=self.verbose
         )
 
-    def process(self, input_data: str, domain: Optional[str] = None) -> str:
+    def process(self, input_data: str, domain: Optional[str] = None, 
+                specialization: Optional[str] = None, complexity: int = 5) -> str:
         """
         Process input through the complete thinking and expert analysis pipeline.
         
         Args:
             input_data: The question or problem to analyze
             domain: Optional domain context to specialize the analysis
+            specialization: Optional specific area of expertise
+            complexity: Desired complexity level (1-10, where 1 is most concise)
         """
         try:
             if self.verbose:
                 print(f"\n🧠 Starting analysis of: {input_data}")
                 if domain:
                     print(f"Domain context: {domain}")
+                if specialization:
+                    print(f"Specialization: {specialization}")
+                print(f"Complexity level: {complexity}")
+            
+            # Create crews with current parameters
+            self.thinking_crew = self._create_thinking_crew()
+            self.expert_crew = self._create_expert_crew(specialization)
+            self.collaboration_crew = self._create_collaboration_crew(specialization, complexity)
             
             # Initial thinking process
             thinking_result = self.thinking_crew.kickoff(
@@ -235,20 +261,22 @@ class ThinkingProcess:
 def main():
     # Test cases with domain contexts
     test_cases = [
-        ("What are the implications of quantum computing on current cryptography systems?", "cryptography"),
-        ("How can we optimize supply chain resilience while maintaining cost efficiency?", "supply_chain"),
-        ("What are the ethical considerations in developing autonomous AI systems?", "ai_ethics")
+        ("What are the implications of quantum computing on current cryptography systems?", "cryptography", "post-quantum cryptography", 8),
+        ("How can we optimize supply chain resilience while maintaining cost efficiency?", "supply_chain", "logistics", 5),
+        ("What are the ethical considerations in developing autonomous AI systems?", "ai_ethics", "machine learning ethics", 7)
     ]
 
     process = ThinkingProcess(verbose=True)
     
-    for question, domain in test_cases:
+    for question, domain, specialization, complexity in test_cases:
         print("\n" + "="*50)
         print(f"Processing Question:\n{question}")
         print(f"Domain: {domain}")
+        print(f"Specialization: {specialization}")
+        print(f"Complexity Level: {complexity}")
         print("="*50)
         
-        result = process.process(question, domain)
+        result = process.process(question, domain, specialization, complexity)
         print(f"\nFinal Result:\n{result}")
 
 if __name__ == "__main__":
