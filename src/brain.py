@@ -178,62 +178,37 @@ class CognitiveCrew:
         # Define tasks with explicit instructions
         tasks = [
             Task(
-                description=(
-                    "Extract precise keywords, identify primary intent, "
-                    "and capture core semantic signals from the input. "
-                    "CRITICAL: Do NOT summarize. Provide raw, exact extraction."
-                ),
+                description="Analyze this input: '{input}' - Extract precise keywords, identify primary intent, and capture core semantic signals.",
                 agent=agents[0],
-                expected_output=(
-                    "A list of exact keywords, core intent, and primary semantic signals, "
-                    "with no interpretation or summary"
-                )
+                expected_output="A list of exact keywords, core intent, and primary semantic signals from the question"
             ),
             Task(
-                description=(
-                    "Analyze extracted features to reveal underlying cognitive patterns. "
-                    "Create a structured mapping of conceptual connections."
-                ),
+                description="Based on the analysis of '{input}', reveal underlying cognitive patterns and create a structured mapping of connections.",
                 agent=agents[1],
                 expected_output="A clear, logical mapping of conceptual relationships and patterns"
             ),
             Task(
-                description=(
-                    "Synthesize the pattern-identified features into a comprehensive context. "
-                    "Explain how different elements interact and contribute to understanding."
-                ),
+                description="For '{input}', synthesize the pattern-identified features into a comprehensive context and explain their interactions.",
                 agent=agents[2],
                 expected_output="A holistic contextual framework explaining interconnections"
             ),
             Task(
-                description=(
-                    "Critically evaluate potential implications, limitations, "
-                    "and areas of uncertainty in the current understanding."
-                ),
+                description="Evaluate implications and limitations in understanding '{input}'.",
                 agent=agents[3],
                 expected_output="A detailed analysis of potential risks and limitations"
             ),
             Task(
-                description=(
-                    "Transform integrated and risk-assessed information into "
-                    "sophisticated, nuanced insights. Develop clear, actionable recommendations."
-                ),
+                description="Provide sophisticated insights and recommendations for '{input}'.",
                 agent=agents[4],
                 expected_output="Sophisticated insights with precise, actionable recommendations"
             ),
             Task(
-                description=(
-                    "Apply deep, domain-specific knowledge to provide nuanced, "
-                    "expert-level insights that add depth to the analysis."
-                ),
+                description="Apply domain expertise to analyze '{input}'.",
                 agent=agents[5],
                 expected_output="Expert-level insights specific to the input's domain"
             ),
             Task(
-                description=(
-                    "Synthesize all previous insights into a single, coherent, "
-                    "and directly actionable response."
-                ),
+                description="Synthesize all insights about '{input}' into a final response.",
                 agent=agents[6],
                 expected_output="A crisp, clear, and immediately actionable final response"
             )
