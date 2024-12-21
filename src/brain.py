@@ -162,7 +162,7 @@ class CognitiveCrew:
 
     def _create_crew(self) -> Crew:
         """
-        Create the cognitive processing crew with parallel analysis tasks
+        Create the cognitive processing crew with sequential processing
         """
         # Create agents
         agents = [
@@ -187,48 +187,42 @@ class CognitiveCrew:
                 agent=agents[1],
                 expected_output="A clear, logical mapping of conceptual relationships and patterns"
             ),
-            # These three tasks can run in parallel
             Task(
                 description="For '{input}', synthesize the pattern-identified features into a comprehensive context and explain their interactions.",
                 agent=agents[2],
-                expected_output="A holistic contextual framework explaining interconnections",
-                context_from_tasks=[1]  # Depends on pattern recognition
+                expected_output="A holistic contextual framework explaining interconnections"
             ),
             Task(
                 description="Evaluate implications and limitations in understanding '{input}'.",
                 agent=agents[3],
-                expected_output="A detailed analysis of potential risks and limitations",
-                context_from_tasks=[1]  # Depends on pattern recognition
+                expected_output="A detailed analysis of potential risks and limitations"
             ),
             Task(
                 description="Provide sophisticated insights and recommendations for '{input}'.",
                 agent=agents[4],
-                expected_output="Sophisticated insights with precise, actionable recommendations",
-                context_from_tasks=[1]  # Depends on pattern recognition
+                expected_output="Sophisticated insights with precise, actionable recommendations"
             ),
             Task(
                 description="Apply domain expertise to analyze '{input}'.",
                 agent=agents[5],
-                expected_output="Expert-level insights specific to the input's domain",
-                context_from_tasks=[1]  # Depends on pattern recognition
+                expected_output="Expert-level insights specific to the input's domain"
             ),
             Task(
                 description="Synthesize all insights about '{input}' into a final response.",
                 agent=agents[6],
-                expected_output="A crisp, clear, and immediately actionable final response",
-                context_from_tasks=[2,3,4,5]  # Depends on all analysis tasks
+                expected_output="A crisp, clear, and immediately actionable final response"
             )
         ]
 
         return Crew(
             agents=agents,
             tasks=tasks,
-            process=Process.parallel,  # Enable parallel processing
+            process=Process.sequential,
             verbose=self.verbose,
             model_kwargs={
-                "temperature": 0.4,
-                "max_tokens": 2000,
-                "top_p": 0.8
+                "temperature": 0.4,  # Balanced between creativity and precision
+                "max_tokens": 2000,  # Increased to allow more comprehensive processing
+                "top_p": 0.8  # Allows for more diverse but still focused responses
             }
         )
 
