@@ -1,14 +1,20 @@
 from typing import Any, Optional
-from .domain_processors import DOMAIN_PROCESSORS
+from .domain_knowledge import DomainKnowledgeBase
 
 class CognitiveCrew:
     def process_input(self, input_data: Any, domain: Optional[str] = None) -> str:
         """
-        Process input with domain-specific strategy
+        Process input with domain-specific knowledge strategy
         """
         try:
+            # Normalize domain to lowercase, default to 'default' if not specified
+            domain_key = domain.lower() if domain else 'default'
+            
             # Select processor based on domain
-            processor = DOMAIN_PROCESSORS.get(domain, DOMAIN_PROCESSORS['science'])
+            processor = DomainKnowledgeBase.DOMAIN_PROCESSORS.get(
+                domain_key, 
+                DomainKnowledgeBase.DOMAIN_PROCESSORS['default']
+            )
             
             # Process with domain-specific strategy
             result = processor(str(input_data))
@@ -17,13 +23,3 @@ class CognitiveCrew:
         
         except Exception as e:
             return f"Processing error: {e}"
-
-    def verbose_process_input(self, input_data: Any, domain: Optional[str] = None) -> str:
-        """
-        Verbose processing with additional context
-        """
-        result = self.process_input(input_data, domain)
-        print(f"Domain: {domain or 'default'}")
-        print(f"Input: {input_data}")
-        print(f"Result: {result}")
-        return result
