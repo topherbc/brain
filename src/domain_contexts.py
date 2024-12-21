@@ -1,25 +1,20 @@
-from typing import Dict, Callable
+from typing import Dict, Any
 
-DOMAIN_CONTEXTS: Dict[str, Dict[str, str]] = {
-    'philosophy': {
-        'perspective': "Explore the metaphysical and phenomenological implications",
-        'tone': "Contemplative, introspective, drawing connections to broader existential questions",
-        'approach': "Seek deeper meaning beyond immediate scientific explanation"
-    },
-    'science': {
-        'perspective': "Provide precise, empirical understanding",
-        'tone': "Analytical, evidence-based, focused on mechanism and process",
-        'approach': "Explain through observable, testable phenomena"
-    },
-    'poetry': {
-        'perspective': "Interpret through metaphor and emotional resonance",
-        'tone': "Lyrical, evocative, emphasizing subjective experience",
-        'approach': "Explore symbolic and aesthetic dimensions"
+class DomainContext:
+    @staticmethod
+    def apply_scientific_lens(original_output: str, input_query: str) -> str:
+        return f"[Scientific Lens] {original_output}\nRigorously analyzed through empirical, measurable parameters."
+
+    @staticmethod
+    def apply_philosophical_lens(original_output: str, input_query: str) -> str:
+        return f"[Philosophical Lens] {original_output}\nReframed through existential and epistemological considerations."
+
+    @staticmethod
+    def apply_poetic_lens(original_output: str, input_query: str) -> str:
+        return f"[Poetic Lens] {original_output}\nTransformed into a metaphorical, emotionally resonant interpretation."
+
+    DOMAIN_LENSES: Dict[str, Any] = {
+        'science': apply_scientific_lens,
+        'philosophy': apply_philosophical_lens,
+        'poetry': apply_poetic_lens
     }
-}
-
-def get_domain_context(domain: str) -> Dict[str, str]:
-    """
-    Retrieve specialized context for a given domain
-    """
-    return DOMAIN_CONTEXTS.get(domain, DOMAIN_CONTEXTS['science'])
