@@ -35,15 +35,13 @@ except Exception as e:
     brain = None
 
 class ProcessRequest(BaseModel):
-    input: str
+    text: str  # Changed from 'input' to match frontend
     domain: Optional[str] = None
 
 class ProcessResponse(BaseModel):
-    status: str
-    result: Optional[dict] = None
-    error: Optional[str] = None
+    response: str  # Changed to match what frontend expects
 
-@app.post("/api/process", response_model=ProcessResponse)
+@app.post("/process")
 async def process_input(request: ProcessRequest):
     if brain is None:
         raise HTTPException(
@@ -54,21 +52,12 @@ async def process_input(request: ProcessRequest):
     try:
         # Process the input using ThinkingProcess
         result = brain.process(
-            request.input,
+            request.text,
             domain=request.domain
         )
         
-        # Check if result is a string (error message) or a successful result
-        if isinstance(result, str) and "error" in result.lower():
-            return {
-                "status": "error",
-                "error": result
-            }
-        else:
-            return {
-                "status": "success",
-                "result": {"output": result}
-            }
+        # Return in format expected by frontend
+        return ProcessResponse(response=str(result))
             
     except Exception as e:
         raise HTTPException(
@@ -76,13 +65,13 @@ async def process_input(request: ProcessRequest):
             detail=str(e)
         )
 
-@app.get("/api/health")
+@app.get("/health")
 async def health_check():
     return {"status": "healthy", "brain_initialized": brain is not None}
 
 if __name__ == "__main__":
-    # Get port from environment variable or default to 8000
-    port = int(os.getenv("PORT", 8000))
+    # Default to port 8001
+    port = int(os.getenv("PORT", 8001))
     
     # Run the FastAPI application
     uvicorn.run(
