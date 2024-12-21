@@ -264,22 +264,53 @@ class CognitiveCrew:
             return error_msg
 
 def main():
+    # Define test programming problems
+    test_problems = [
+        # 1. Simple arithmetic calculator
+        ("""
+        Write a function that takes two numbers and an operator (+, -, *, /) 
+        and returns the result of the operation.
+
+        Example:
+        calculate(4, 2, '+') should return 6
+        calculate(4, 2, '-') should return 2
+        calculate(4, 2, '*') should return 8
+        calculate(4, 2, '/') should return 2
+        """, "programming"),
+
+        # 2. FizzBuzz implementation
+        ("""
+        Write a function that takes a number n and prints:
+        - 'Fizz' if the number is divisible by 3
+        - 'Buzz' if the number is divisible by 5
+        - 'FizzBuzz' if the number is divisible by both 3 and 5
+        - The number itself if none of the above conditions are true
+
+        Example:
+        fizzbuzz(15) should print numbers from 1 to 15 with appropriate substitutions
+        """, "programming"),
+
+        # 3. Array manipulation
+        ("""
+        Write a function that finds the second largest number in an array.
+        If there is no second largest number, return the largest number.
+
+        Example:
+        find_second_largest([1, 3, 4, 5, 0, 2]) should return 4
+        find_second_largest([1, 1, 1]) should return 1
+        """, "programming")
+    ]
+
     # Initialize Cognitive Crew with verbose output
     cognitive_crew = CognitiveCrew(verbose=True)
     
-    # Test with sample inputs
-    test_inputs = [
-        ("What color is the sky?", "physics"),
-        ("What are all the evenly divisible numbers from 1 to 100?", "math")
-    ]
-    
-    # Process each input
-    for input_text, domain in test_inputs:
+    # Process each problem
+    for problem, domain in test_problems:
         print("\n" + "="*50)
-        print(f"Processing: {input_text}")
+        print(f"Processing Problem:\n{problem}")
         print("="*50)
         
-        result = cognitive_crew.process_input(input_text, domain)
+        result = cognitive_crew.process_input(problem, domain)
 
 if __name__ == "__main__":
     main()
