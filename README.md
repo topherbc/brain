@@ -4,6 +4,7 @@ A sophisticated cognitive architecture implementing brain-inspired AI agents usi
 
 ## Features
 
+### Core Features
 - Multiple specialized cognitive agents (sensory, pattern recognition, memory, etc.)
 - Persistent memory system with short-term and long-term storage
 - Enhanced error handling and validation
@@ -11,7 +12,23 @@ A sophisticated cognitive architecture implementing brain-inspired AI agents usi
 - Domain-specific processing capabilities
 - Tool integration for advanced analysis
 
-## Installation
+### Web Interface
+- Modern React-based user interface
+- Real-time processing feedback
+- Domain specification support
+- Responsive design with Tailwind CSS
+- Error handling and validation
+
+### API
+- RESTful API with FastAPI
+- Async request processing
+- Health monitoring endpoints
+- Comprehensive error handling
+- CORS support for development
+
+## Quick Start
+
+For detailed setup instructions, see [SETUP.md](SETUP.md).
 
 1. Clone the repository:
 ```bash
@@ -19,9 +36,9 @@ git clone https://github.com/topherbc/brain.git
 cd brain
 ```
 
-2. Install dependencies:
+2. Install backend dependencies:
 ```bash
-pip install -r requirements.txt
+pip install -r api_requirements.txt
 ```
 
 3. Set up environment variables:
@@ -31,9 +48,45 @@ OPENAI_API_KEY=your_api_key_here
 VERBOSE=True
 ```
 
+4. Install frontend dependencies:
+```bash
+cd web
+npm install
+```
+
+5. Start the servers:
+```bash
+# Terminal 1 - Backend
+cd api
+python main.py
+
+# Terminal 2 - Frontend
+cd web
+npm run dev
+```
+
 ## Usage
 
-Basic usage:
+### Web Interface
+Access the web interface at http://localhost:5173
+
+### API Endpoints
+
+```bash
+# Process input
+POST http://localhost:8000/api/process
+Content-Type: application/json
+
+{
+    "input": "Your input text here",
+    "domain": "optional domain specification"
+}
+
+# Check health
+GET http://localhost:8000/api/health
+```
+
+### Python Library
 ```python
 from src.brain import CognitiveCrew
 
@@ -53,16 +106,9 @@ else:
     print(f"Error: {result['error']}")
 ```
 
-## Examples
-
-Check the `examples` directory for more detailed usage examples:
-
-- `basic_decision.py`: Simple decision-making example
-- `complex_analysis.py`: Complex analysis with domain expertise
-- `memory_test.py`: Memory system integration testing
-
 ## Architecture
 
+### Brain Architecture
 The system implements a brain-inspired architecture with the following components:
 
 1. Sensory Processing
@@ -98,6 +144,53 @@ The system implements a brain-inspired architecture with the following component
    - Final synthesis
    - Output generation
    - Decision implementation
+
+### Technical Architecture
+
+1. Frontend (React + Vite)
+   - Modern component architecture
+   - Real-time state management
+   - Tailwind CSS styling
+   - shadcn/ui components
+
+2. Backend (FastAPI)
+   - Asynchronous request handling
+   - RESTful API design
+   - Comprehensive error handling
+   - Health monitoring
+
+3. Core Processing (CrewAI)
+   - Agent coordination
+   - Task sequencing
+   - Error recovery
+   - Domain adaptation
+
+## Examples
+
+Check the `examples` directory for detailed usage examples:
+
+- `basic_decision.py`: Simple decision-making example
+- `complex_analysis.py`: Complex analysis with domain expertise
+- `memory_test.py`: Memory system integration testing
+
+## Development
+
+### Frontend Development
+```bash
+cd web
+npm run dev
+```
+
+### Backend Development
+```bash
+cd api
+python main.py
+```
+
+### Core Library Development
+```bash
+python -m pytest tests/
+```
 
 ## Contributing
 
