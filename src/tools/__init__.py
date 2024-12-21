@@ -1,5 +1,5 @@
 """Analysis tools package."""
 
-from .text_analysis import TextAnalysisTool
+from .analysis import TextAnalysisTool, DataAnalysisTool
 
-__all__ = ['TextAnalysisTool']
+__all__ = ['TextAnalysisTool', 'DataAnalysisTool']
