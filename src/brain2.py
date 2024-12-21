@@ -83,12 +83,14 @@ class ThinkingProcess:
             Task(
                 description="""Analyze the input for fundamental patterns, 
                 relationships, and key elements requiring expert attention.""",
-                agent=agents[0]
+                agent=agents[0],
+                expected_output="A structured analysis of core patterns and relationships identified in the input"
             ),
             Task(
                 description="""Build comprehensive context around identified patterns,
                 preparing them for expert analysis.""",
-                agent=agents[1]
+                agent=agents[1],
+                expected_output="Rich contextual framework integrating identified patterns with relevant factors"
             )
         ]
         
@@ -105,12 +107,14 @@ class ThinkingProcess:
             Task(
                 description="""Analyze the prepared context from primary domain 
                 perspective, identifying key insights and potential solutions.""",
-                agent=agents[0]
+                agent=agents[0],
+                expected_output="Detailed primary domain analysis with specific insights and solution recommendations"
             ),
             Task(
                 description="""Provide analysis from secondary domain perspective,
                 highlighting additional insights and considerations.""",
-                agent=agents[1]
+                agent=agents[1],
+                expected_output="Complementary analysis from secondary domain with alternative perspectives and considerations"
             )
         ]
         
@@ -129,7 +133,8 @@ class ThinkingProcess:
             Task(
                 description="""Review expert analyses and synthesize into coherent
                 strategy and recommendations.""",
-                agent=director
+                agent=director,
+                expected_output="Synthesized strategic direction incorporating expert insights and recommendations"
             )
         ]
         
@@ -144,28 +149,34 @@ class ThinkingProcess:
         """
         Process input through the complete thinking and expert analysis pipeline.
         """
-        # Initial thinking process
-        thinking_result = self.thinking_crew.kickoff(
-            inputs={'input': input_data}
-        )
+        try:
+            # Initial thinking process
+            thinking_result = self.thinking_crew.kickoff(
+                inputs={'input': input_data}
+            )
+            
+            # Expert analysis
+            expert_result = self.expert_crew.kickoff(
+                inputs={
+                    'input': input_data,
+                    'thinking_context': thinking_result
+                }
+            )
+            
+            # Final synthesis
+            final_result = self.collaboration_crew.kickoff(
+                inputs={
+                    'input': input_data,
+                    'expert_analysis': expert_result
+                }
+            )
+            
+            return final_result
         
-        # Expert analysis
-        expert_result = self.expert_crew.kickoff(
-            inputs={
-                'input': input_data,
-                'thinking_context': thinking_result
-            }
-        )
-        
-        # Final synthesis
-        final_result = self.collaboration_crew.kickoff(
-            inputs={
-                'input': input_data,
-                'expert_analysis': expert_result
-            }
-        )
-        
-        return final_result
+        except Exception as e:
+            error_msg = f"Processing error: {str(e)}"
+            logger.error(error_msg)
+            return error_msg
 
 def main():
     # Test the thinking process
