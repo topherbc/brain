@@ -81,16 +81,14 @@ class ThinkingProcess:
         agents = self._create_thinking_agents()
         tasks = [
             Task(
-                description="""Analyze the input for fundamental patterns, 
-                relationships, and key elements requiring expert attention.""",
+                description="For the question: '{input}', identify and analyze fundamental patterns, key relationships, and essential elements that require expert attention.",
                 agent=agents[0],
-                expected_output="A structured analysis of core patterns and relationships identified in the input"
+                expected_output="A structured analysis of core patterns and relationships relevant to the input question"
             ),
             Task(
-                description="""Build comprehensive context around identified patterns,
-                preparing them for expert analysis.""",
+                description="Given the patterns identified from '{input}', build comprehensive context considering all relevant factors and prepare for expert analysis.",
                 agent=agents[1],
-                expected_output="Rich contextual framework integrating identified patterns with relevant factors"
+                expected_output="Contextual framework that integrates identified patterns with relevant background and implications"
             )
         ]
         
@@ -105,16 +103,14 @@ class ThinkingProcess:
         agents = self._create_expert_agents()
         tasks = [
             Task(
-                description="""Analyze the prepared context from primary domain 
-                perspective, identifying key insights and potential solutions.""",
+                description="Review '{input}' and the provided context. Analyze from your primary domain expertise, providing key insights and potential solutions.",
                 agent=agents[0],
-                expected_output="Detailed primary domain analysis with specific insights and solution recommendations"
+                expected_output="Primary domain analysis with specific insights and recommendations based on expertise"
             ),
             Task(
-                description="""Provide analysis from secondary domain perspective,
-                highlighting additional insights and considerations.""",
+                description="Examine '{input}' from your complementary domain perspective, considering the primary analysis and adding crucial alternative viewpoints.",
                 agent=agents[1],
-                expected_output="Complementary analysis from secondary domain with alternative perspectives and considerations"
+                expected_output="Secondary domain analysis with alternative perspectives and additional considerations"
             )
         ]
         
@@ -131,10 +127,9 @@ class ThinkingProcess:
         
         tasks = [
             Task(
-                description="""Review expert analyses and synthesize into coherent
-                strategy and recommendations.""",
+                description="For the question '{input}', review all expert analyses and synthesize into a coherent strategy with clear recommendations.",
                 agent=director,
-                expected_output="Synthesized strategic direction incorporating expert insights and recommendations"
+                expected_output="Final synthesized strategy incorporating expert insights with clear, actionable recommendations"
             )
         ]
         
@@ -145,15 +140,27 @@ class ThinkingProcess:
             verbose=self.verbose
         )
 
-    def process(self, input_data: str) -> str:
+    def process(self, input_data: str, domain: Optional[str] = None) -> str:
         """
         Process input through the complete thinking and expert analysis pipeline.
+        
+        Args:
+            input_data: The question or problem to analyze
+            domain: Optional domain context to specialize the analysis
         """
         try:
+            if self.verbose:
+                print(f"\n🧠 Starting analysis of: {input_data}")
+                if domain:
+                    print(f"Domain context: {domain}")
+            
             # Initial thinking process
             thinking_result = self.thinking_crew.kickoff(
                 inputs={'input': input_data}
             )
+            
+            if self.verbose:
+                print("\n📋 Thinking analysis complete, starting expert review")
             
             # Expert analysis
             expert_result = self.expert_crew.kickoff(
@@ -163,6 +170,9 @@ class ThinkingProcess:
                 }
             )
             
+            if self.verbose:
+                print("\n🔍 Expert analysis complete, synthesizing final results")
+            
             # Final synthesis
             final_result = self.collaboration_crew.kickoff(
                 inputs={
@@ -171,7 +181,10 @@ class ThinkingProcess:
                 }
             )
             
-            return final_result
+            if self.verbose:
+                print("\n✅ Analysis complete")
+            
+            return str(final_result)
         
         except Exception as e:
             error_msg = f"Processing error: {str(e)}"
@@ -179,22 +192,23 @@ class ThinkingProcess:
             return error_msg
 
 def main():
-    # Test the thinking process
-    test_inputs = [
-        "What are the implications of quantum computing on current cryptography systems?",
-        "How can we optimize supply chain resilience while maintaining cost efficiency?",
-        "What are the ethical considerations in developing autonomous AI systems?"
+    # Test cases with domain contexts
+    test_cases = [
+        ("What are the implications of quantum computing on current cryptography systems?", "cryptography"),
+        ("How can we optimize supply chain resilience while maintaining cost efficiency?", "supply_chain"),
+        ("What are the ethical considerations in developing autonomous AI systems?", "ai_ethics")
     ]
 
     process = ThinkingProcess(verbose=True)
     
-    for input_text in test_inputs:
+    for question, domain in test_cases:
         print("\n" + "="*50)
-        print(f"Processing Question:\n{input_text}")
+        print(f"Processing Question:\n{question}")
+        print(f"Domain: {domain}")
         print("="*50)
         
-        result = process.process(input_text)
-        print(f"\nResult:\n{result}")
+        result = process.process(question, domain)
+        print(f"\nFinal Result:\n{result}")
 
 if __name__ == "__main__":
     main()
