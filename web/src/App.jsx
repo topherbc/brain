@@ -13,7 +13,7 @@ const App = () => {
     setError(null);
     
     try {
-      const res = await fetch('http://localhost:8000/process', {
+      const res = await fetch('http://localhost:8001/process', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -30,7 +30,7 @@ const App = () => {
     } catch (error) {
       console.error('Error:', error);
       if (error.message === 'Failed to fetch') {
-        setError('Unable to connect to the API server. Please make sure the backend is running at http://localhost:8000');
+        setError('Unable to connect to the API server. Please make sure the backend is running at http://localhost:8001');
       } else {
         setError(`An error occurred: ${error.message}`);
       }
