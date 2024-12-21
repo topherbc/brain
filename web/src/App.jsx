@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
+import { Slider } from '@/components/ui/slider';
 
 const App = () => {
   const [input, setInput] = useState('');
   const [domain, setDomain] = useState('general');
+  const [specialization, setSpecialization] = useState('');
+  const [complexity, setComplexity] = useState(5);
   const [response, setResponse] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -18,7 +21,12 @@ const App = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ text: input, domain }),
+        body: JSON.stringify({ 
+          text: input, 
+          domain,
+          specialization,
+          complexity
+        }),
       });
       
       if (!res.ok) {
@@ -47,7 +55,7 @@ const App = () => {
           Brain Project Interface
         </h1>
         <p className="text-center text-gray-600 mb-6">
-          Enter your text and select a domain for processing
+          Enter your text and customize processing parameters
         </p>
         
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -61,17 +69,53 @@ const App = () => {
             />
           </div>
           
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Domain
+              </label>
+              <select
+                value={domain}
+                onChange={(e) => setDomain(e.target.value)}
+                className="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:border-blue-500"
+              >
+                <option value="general">General</option>
+                <option value="scientific">Scientific</option>
+                <option value="creative">Creative</option>
+                <option value="analytical">Analytical</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Specialization
+              </label>
+              <input
+                type="text"
+                value={specialization}
+                onChange={(e) => setSpecialization(e.target.value)}
+                placeholder="E.g., neuroscience, poetry, data analysis"
+                className="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:border-blue-500"
+              />
+            </div>
+          </div>
+
           <div>
-            <select
-              value={domain}
-              onChange={(e) => setDomain(e.target.value)}
-              className="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:border-blue-500"
-            >
-              <option value="general">General</option>
-              <option value="scientific">Scientific</option>
-              <option value="creative">Creative</option>
-              <option value="analytical">Analytical</option>
-            </select>
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Response Complexity: {complexity}/10
+            </label>
+            <Slider
+              value={[complexity]}
+              onValueChange={(value) => setComplexity(value[0])}
+              min={1}
+              max={10}
+              step={1}
+              className="w-full"
+            />
+            <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <span>Concise</span>
+              <span>Complex</span>
+            </div>
           </div>
 
           <button
