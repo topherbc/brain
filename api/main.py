@@ -1,11 +1,9 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional
 import uvicorn
 import os
-from pathlib import Path
 
 # Import the CognitiveCrew from your existing project
 from src.brain import CognitiveCrew
@@ -16,16 +14,11 @@ app = FastAPI(title="Brain Project API")
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, replace with your frontend URL
+    allow_origins=["http://localhost:5173"],  # Vite dev server
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Mount static files for web interface
-static_path = Path(__file__).parent.parent / "web"
-if static_path.exists():
-    app.mount("/", StaticFiles(directory=str(static_path), html=True), name="static")
 
 # Initialize CognitiveCrew
 crew = CognitiveCrew(verbose=True)
@@ -76,7 +69,7 @@ if __name__ == "__main__":
     
     # Run the FastAPI application
     uvicorn.run(
-        "main:app",
+        "app",
         host="0.0.0.0",
         port=port,
         reload=True  # Enable auto-reload during development
